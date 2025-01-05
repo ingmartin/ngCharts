@@ -1,0 +1,13 @@
+:host {
+    display: grid;
+    padding-left: 16px;
+}
+
+h1 {
+    color: var(--fbc-blue-60);
+    font-size: 3em;
+}
+
+p{
+    color: var(--fbc-secondary-text)
+}

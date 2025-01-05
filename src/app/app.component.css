@@ -1,0 +1,3 @@
+mat-nav-list a.active {
+  background-color: var(--mat-sys-surface-dim);
+}

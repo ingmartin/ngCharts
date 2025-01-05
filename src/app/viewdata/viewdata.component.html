@@ -1,0 +1,49 @@
+<div class="grid-container">
+  <h1 class="mat-h1">Dashboard</h1>
+  <div style="display: grid; grid-template-columns: 1fr 1fr;">
+    <mat-form-field class="example-full-width">
+      <mat-label>Choose a date</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker_min"
+        [min]="min_date_signal()"
+        [max]="finish_date_signal()"
+        [value]="start_date_signal()"
+        (dateChange)="setStartDate($event)">
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="picker_min"></mat-datepicker-toggle>
+      <mat-datepicker touchUi #picker_min></mat-datepicker>
+    </mat-form-field> 
+    <mat-form-field class="example-full-width">
+      <mat-label>Choose a date</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker_max"
+        [min]="start_date_signal()"
+        [max]="max_date_signal()"
+        [value]="finish_date_signal()"
+        (dateChange)="setFinishDate($event)">
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle matIconSuffix [for]="picker_max"></mat-datepicker-toggle>
+      <mat-datepicker touchUi #picker_max></mat-datepicker>
+    </mat-form-field> 
+  </div>
+  <mat-grid-list cols="2" rowHeight="450px">
+    @for (card of cards | async; track card) {
+      <mat-grid-tile [colspan]="card.cols" [rowspan]="card.rows">
+        <mat-card class="dashboard-card">
+          <mat-card-content class="dashboard-card-content">
+            <div style="display: flex">
+              <highcharts-chart
+                [Highcharts]="card.Highcharts"
+                [options]="card.options"
+                style="width: 100%;"
+                [style.height]="'calc(' + (card.rows * 450) + 'px - 60px)'">
+              </highcharts-chart> 
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+    }
+  </mat-grid-list>
+</div>
