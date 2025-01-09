@@ -1,0 +1,47 @@
+<h2 class="mat-h1">{{ data.h1 }}</h2>
+<form class="chart-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-form-field class="full-width">
+    <mat-label>Title</mat-label>
+    <input
+      matInput
+      placeholder="Title of chart"
+      value=""
+      formControlName="title"
+    />
+  </mat-form-field>
+  <mat-form-field class="full-width">
+    <mat-label>Subtitle</mat-label>
+    <input
+      matInput
+      placeholder="Additional info for chart"
+      value=""
+      formControlName="subtitle"
+    />
+  </mat-form-field>
+  <mat-form-field class="full-width">
+    <mat-label>Type of Chart</mat-label>
+    <mat-select formControlName="type">
+      @for (chart_type of types_of_chart; track chart_type) {
+      <mat-option [value]="chart_type">{{ chart_type }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <section class="fifty-fifty">
+    <mat-checkbox class="example-margin" formControlName="wide"
+      >Wide chart</mat-checkbox
+    >
+    <mat-checkbox class="example-margin" formControlName="tall"
+      >Tall chart</mat-checkbox
+    >
+  </section>
+  <div class="fifty-fifty">
+    <button mat-fab extended (click)="dialogRef.close()">
+      <mat-icon>cancel</mat-icon>
+      Cancel
+    </button>
+    <button mat-fab extended>
+      <mat-icon>save</mat-icon>
+      Submit
+    </button>
+  </div>
+</form>

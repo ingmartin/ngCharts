@@ -177,15 +177,10 @@ export class ViewDataComponent {
         },
         series: [
           {
-            type: "area",
+            type: tile.type,
             name: "Col1",
             data: [1.2, 2.3, 2.5]
           },
-          {
-            type: "area",
-            name: "Col2",
-            data: [2.2, 1.3, 4.5]
-          }
         ]
       }
       let tileMobile: ChartTile = {

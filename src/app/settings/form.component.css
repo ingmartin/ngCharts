@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  background: var(--mat-sys-background);
+  border-radius: 8px;
+  padding: 8px 16px;
+  min-width: 25vw;
+}
+
+.full-width {
+  display: block;
+  width: 100%;
+}
+
+.fifty-fifty {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 10px;
+  margin-bottom: 10px;
+}

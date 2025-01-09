@@ -1,0 +1,19 @@
+.grid-container {
+  margin: 20px;
+}
+
+mat-grid-tile {
+  background: var(--fbc-gray-20);
+  border-radius: 5px;
+  &:hover {
+    background: var(--mat-sys-outline-variant);
+  }
+}
+
+.card .mat-h3 {
+  cursor: pointer;
+  color: var(--fbc-blue-60);
+  &:hover {
+    color: var(--mat-sys-on-primary-fixed-variant);
+  }
+}
