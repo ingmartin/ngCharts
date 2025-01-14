@@ -1,3 +1,5 @@
+import { namesOfFields } from "./data.interface";
+
 export const TypesOfChart = [
   'line',
   'column',
@@ -7,17 +9,14 @@ export const TypesOfChart = [
 ] as const;
 export type ChartType = (typeof TypesOfChart)[number];
 
-export interface Axes {
-  title: string;
-  target: string;
-}
+type AxisesNames = (typeof namesOfFields)[number];
 
 export interface ChartSettings {
   id: number;
   title: string;
   subtitle: string | null;
   type: ChartType;
-  axis: Axes[];
+  axises: AxisesNames[];
   wide?: boolean;
   tall?: boolean;
 }
@@ -29,18 +28,15 @@ export const defaultChartSettings: ChartSettings[] = [
     subtitle: 'Default Chart',
     type: 'line',
     wide: true,
-    axis: [
-      { title: 'X-Axis', target: 'x' },
-      { title: 'Y-Axis', target: 'birthday' },
-    ],
+    axises: ['all', 'birthday'],
   },
   {
     id: 3,
-    title: 'Sex Chart',
+    title: 'Gender Chart',
     subtitle: null,
     type: 'pie',
     wide: false,
-    axis: [{ title: 'X-Axis', target: 'sex' }],
+    axises: ['sex' ],
   },
   {
     id: 2,
@@ -49,10 +45,7 @@ export const defaultChartSettings: ChartSettings[] = [
     type: 'column',
     wide: false,
     tall: true,
-    axis: [
-      { title: 'X-Axis', target: 'blood_grtoup' },
-      { title: 'Y-Axis', target: 'birthday' },
-    ],
+    axises: ['blood_group', 'birthday',],
   },
   {
     id: 4,
@@ -60,6 +53,6 @@ export const defaultChartSettings: ChartSettings[] = [
     subtitle: null,
     type: 'spline',
     wide: false,
-    axis: [{ title: 'X-Axis', target: 'sex' }],
+    axises: ['job'],
   },
 ];

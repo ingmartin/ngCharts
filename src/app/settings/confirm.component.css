@@ -19,11 +19,10 @@
   gap: 10px;
 }
 
-::ng-deep .warning .mdc-label{
-  color: var(--mat-sys-error);
-  font-weight: 600;
-}
-
 .mb10{
   margin-bottom: 10px;
+}
+
+.pv10{
+  padding: 10px 0;
 }

@@ -15,7 +15,6 @@ import { updateDataStore } from './data/store/data.store';
 import { updateSettingsStore } from './data/store/chart.store';
 import { defaultChartSettings } from './data/interfaces/chart.interface';
 
-
 @Component({
   selector: 'app-root',
   imports: [
@@ -31,26 +30,25 @@ import { defaultChartSettings } from './data/interfaces/chart.interface';
     AsyncPipe,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
 export class AppComponent {
   title = 'Charts';
   private breakpointObserver = inject(BreakpointObserver);
   dataService = inject(DataService);
   activeLink: any = '';
-  
 
   constructor() {
-    updateSettingsStore(defaultChartSettings)
-    this.dataService.getChartData('')
-      .subscribe(val => {
-        updateDataStore(val)
-      })
+    updateSettingsStore(defaultChartSettings);
+    this.dataService.getChartData('').subscribe((val) => {
+      updateDataStore(val);
+    });
   }
 
-  isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
+  isHandset$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Handset)
     .pipe(
-      map(result => result.matches),
+      map((result) => result.matches),
       shareReplay()
     );
 }

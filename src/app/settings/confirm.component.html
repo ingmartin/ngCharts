@@ -1,0 +1,12 @@
+<h2 class="mat-h1">{{ data.h1 }}</h2>
+<div class="full-width pv10 mb10">{{ data.text }}</div>
+<div class="fifty-fifty mb10">
+  <button mat-fab extended (click)="dialogRef.close()">
+    <mat-icon>cancel</mat-icon>
+    Cancel
+  </button>
+  <button mat-fab extended (click)="onAgree()">
+    <mat-icon>check_circle</mat-icon>
+    Agree
+  </button>
+</div>

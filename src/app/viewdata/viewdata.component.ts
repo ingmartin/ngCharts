@@ -1,3 +1,4 @@
+import { ChartData } from './../data/interfaces/data.interface';
 import { ChartSettings } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
@@ -9,7 +10,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { ChartData } from '../data/interfaces/data.interface';
 import { selectAllEntities, selectManyByPredicate } from '@ngneat/elf-entities';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
