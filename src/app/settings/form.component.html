@@ -1,6 +1,5 @@
 <h2 class="mat-h1">{{ data.h1 }}</h2>
 <form class="chart-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-	<input type="hidden" formControlName="id" />
   <mat-form-field class="full-width">
     <mat-label>Title</mat-label>
     <input
@@ -29,20 +28,29 @@
   </mat-form-field>
 	@if (form.value.type) {
 	<div formArrayName="axises">
-		@for (axis of makeAxisesArray()['controls']; track $index) {
+		@for (axis of makeAxisesArray()['controls']; track $index; let idx = $index;) {
 		<mat-form-field class="full-width">
 			<mat-label>Axis {{ axisesNames[$index] }}</mat-label>
 			<mat-select formControlName="{{$index}}" (selectionChange)="onChange($event.value, $index)">
 				@for (target of listOfTargets; track $index + '_' + target) {
-				<mat-option [value]="target" [disabled]="checkDisabled($index, target)">{{ target }}</mat-option>
+          @if (!checkDisabled(idx, target)){
+				<mat-option [value]="target" [disabled]="">{{ target }}</mat-option>
+          }
 				}
 			</mat-select>
 		</mat-form-field>
 		}
 	</div>
 	}
-  @if (selects.slice(0, minAxisesNumber).includes("birthday")) {
-    Count by:
+  @if (selects.slice(0, minAxisesNumber).includes("birthdate")) {
+    <mat-form-field class="full-width">
+      <mat-label>Count By</mat-label>
+      <mat-select formControlName="countby" (selectionChange)="setAxisesLength($event.value)">
+        @for (counter of countBy; track counter) {
+        <mat-option [value]="counter">{{ counter }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
   }
   <section class="fifty-fifty mb10">
     <mat-checkbox formControlName="wide">Wide chart</mat-checkbox>

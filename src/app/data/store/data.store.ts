@@ -14,6 +14,7 @@ export function updateDataStore(data: ChartData[]): boolean {
   updated += 1;
   data = data.map((val) => {
     val.birthdate = new Date(val.birthdate);
+    val.all = 'all';
     return val;
   });
   dataStore.update(setEntities(data));

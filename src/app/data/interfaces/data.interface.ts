@@ -1,14 +1,16 @@
-export const namesOfFields = [
+export const NamesOfFields = [
   'all',
   'sex',
   'blood_group',
   'job',
   'company',
-  'birthday',
-];
+  'birthdate',
+] as const;
+export type NamesOfType = (typeof NamesOfFields)[number];
 
 export interface ChartData {
   id: number;
+  all: string;
   name: string;
   birthdate: Date;
   blood_group: string;

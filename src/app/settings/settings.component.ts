@@ -1,7 +1,8 @@
+import { CountBy } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
 import { Component, inject } from '@angular/core';
-import { ChartSettings, TypesOfChart, } from '../data/interfaces/chart.interface';
-import { settingsStore } from '../data/store/chart.store';
+import { ChartSettings, TypesOfChart, AxisesNames } from '../data/interfaces/chart.interface';
+import { deleteSettingItem, settingsStore, upsertSettingItem } from '../data/store/chart.store';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,11 +12,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { namesOfFields } from '../data/interfaces/data.interface';
+import { NamesOfFields } from '../data/interfaces/data.interface';
 import * as _ from 'lodash';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 let settings: ChartSettings[] = [],
-  settingsLastUpdated: number = 0;
+  settingsLastUpdated: number = 0,
+  redraw = new BehaviorSubject<boolean>(true);
 
 @Component({
   selector: 'app-settings',
@@ -29,12 +32,22 @@ export class SettingsComponent {
   dialog = inject(Dialog);
 
   constructor() {
-    settingsStore.subscribe((state) => {
-      this.settingsUpdated = state.updated;
-      this.getSettings();
-      this.settings = settings;
-    });
+    redraw.next(true);
   }
+
+  checkToRedraw(): Observable<boolean> {
+    return redraw.asObservable();
+  }
+
+  checker$ = this.checkToRedraw().subscribe(res => {
+    if (res) {
+      settingsStore.subscribe((state) => {
+        this.settingsUpdated = state.updated;
+        this.getSettings();
+        this.settings = settings;
+      });
+    }
+  });
 
   getSettings() {
     if (settingsLastUpdated < this.settingsUpdated) {
@@ -46,8 +59,10 @@ export class SettingsComponent {
           }
         });
       settingsLastUpdated = this.settingsUpdated;
+      redraw.next(false);
     }
   }
+
   openDialog(item?: ChartSettings) {
     let data = {};
     if (item) {
@@ -58,6 +73,7 @@ export class SettingsComponent {
         title: '',
         subtitle: '',
         type: null,
+        countby: null,
         axises: ['', ''],
       };
     }
@@ -88,18 +104,19 @@ export class FormComponent {
   data = inject(DIALOG_DATA);
   dialogRef = inject(DialogRef);
   form = new FormGroup({
-    id: new FormControl(this.data.id),
     title: new FormControl(this.data.title, Validators.required),
     subtitle: new FormControl(this.data.subtitle),
     type: new FormControl(this.data.type, Validators.required),
     axises: new FormArray([new FormControl('', Validators.required)]),
+    countby: new FormControl(this.data.countby),
     wide: new FormControl(this.data.wide),
     tall: new FormControl(this.data.tall),
     remove: new FormControl(false),
   });
   typesOfChart = TypesOfChart;
-  listOfTargets = namesOfFields;
-  axisesNames = ['x', 'y', 'z'];
+  listOfTargets = NamesOfFields;
+  axisesNames = AxisesNames;
+  countBy = CountBy;
   selects: string[] = this.data.axises || [];
   minAxisesNumber: number = this.data.type ==='pie' ? 1 : 2;
   dialog = inject(Dialog);
@@ -135,10 +152,11 @@ export class FormComponent {
   }
 
   checkDisabled(index:number, value: string): boolean {
-    return this.selects
-            .slice(0, this.minAxisesNumber)
-            .filter((v, i, a) => i !== index)
-            .includes(value);
+    let result: boolean = this.selects
+                            .slice(0, this.minAxisesNumber)
+                            .filter((v, i, a) => i !== index)
+                            .includes(value);
+    return result;
   }
 
   onSubmit() {
@@ -147,13 +165,25 @@ export class FormComponent {
       this.dialog.open(ConfirmComponent, {
         data: {
           h1: 'Remove Chart',
-          id: this.form.value.id,
+          id: this.data.id,
           text: `Are you going to remove the chart "${this.form.value.title}"?`,
         },
       });
+      return
     }
 
     if (this.form.valid) {
+      let data: ChartSettings = {
+        id: this.data.id,
+        title: this.form.value.title,
+        subtitle: this.form.value.subtitle ? this.form.value.subtitle: null,
+        type: this.form.value.type,
+        axises: this.form.value.axises ? this.form.value.axises : [],
+        countby: this.form.value.countby ? this.form.value.countby : null,
+        wide: this.form.value.wide ? this.form.value.wide : null,
+        tall: this.form.value.tall ? this.form.value.tall : null,
+      }
+      redraw.next(upsertSettingItem(this.data.id, data))
       this.dialogRef.close();
     }
   }
@@ -173,7 +203,7 @@ export class ConfirmComponent {
   dialogRef = inject(DialogRef);
 
   onAgree() {
-    console.log(`Delete chart ${this.data.id}`);
+    redraw.next(deleteSettingItem(this.data.id));
     this.dialogRef.close();
   }
 }

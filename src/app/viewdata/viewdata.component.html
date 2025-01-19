@@ -29,17 +29,19 @@
     </mat-form-field> 
   </div>
   <mat-grid-list cols="2" rowHeight="450px">
-    @for (card of cards | async; track card) {
+    @for (card of cards | async; track $index + card.type) {
       <mat-grid-tile [colspan]="card.cols" [rowspan]="card.rows">
         <mat-card class="dashboard-card">
           <mat-card-content class="dashboard-card-content">
             <div style="display: flex">
+            @if (card.Highcharts !== null){
               <highcharts-chart
                 [Highcharts]="card.Highcharts"
                 [options]="card.options"
                 style="width: 100%;"
                 [style.height]="'calc(' + (card.rows * 450) + 'px - 60px)'">
               </highcharts-chart> 
+            }
             </div>
           </mat-card-content>
         </mat-card>

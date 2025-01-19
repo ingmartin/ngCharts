@@ -13,6 +13,11 @@
         <div>
           Type: {{ item.type }}<br />
           Axises: {{item.axises.join(', ')}}
+          @if (item.countby) {
+            <br>Count by: {{ item.countby }}
+          } @else if (item.axises.includes('birthdate')) {
+            <br>Count by: days
+          }
         </div>
       </div>
     </mat-grid-tile>

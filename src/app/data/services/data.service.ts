@@ -11,7 +11,7 @@ export class DataService {
 
   constructor() { }
 
-  getChartData(uri: string) {
-    return this.http.get<ChartData[]>(`${this.apiUrl}${uri}`)
+  getChartData() {
+    return this.http.get<ChartData[]>(this.apiUrl)
   }
 }

@@ -40,7 +40,7 @@ export class AppComponent {
 
   constructor() {
     updateSettingsStore(defaultChartSettings);
-    this.dataService.getChartData('').subscribe((val) => {
+    this.dataService.getChartData().subscribe((val) => {
       updateDataStore(val);
     });
   }
