@@ -237,74 +237,8 @@ export class ViewDataComponent {
       var mapFunction: any = (v: Date) => true;
       var compareFunction: any = (v1: any, v2: any) => true;
 
-      if (tile.axises[0] === 'birthdate' && tile.countby !== 'for all time') {
-        tile.countby = tile.countby ? tile.countby : 'days';
-        keyTarget = tile.axises[1];
-        if (tile.countby && countByFilter.includes(tile.countby)) {
-          var parseFunc: any = (str: string) => str;
-          if (tile.countby === 'days') {
-            mapFunction = (v: Date) => v.toISOString().split('T')[0];
-          } else if (tile.countby === 'months') {
-            mapFunction = (v: Date) => (
-              v.toISOString().split('T')[0]
-              .split('-').slice(0, 2).join('-')
-            );
-          } else {
-            mapFunction = (v: Date) => v.getFullYear();
-            parseFunc = parseInt;
-          }
-          uniqueTarget = [
-            ...new Set(filteredDates
-                        .sort((a, b) => a.getTime() - b.getTime())
-                        .map((v) => mapFunction(v))
-            ),
-          ];
-          compareFunction = (v1: any, v2: any) => (mapFunction(v1) === parseFunc(v2));
-        } else if (tile.countby !== 'dynamic') {
-          var diffYears: number =  tile.countby === 'decades' ? 10 : 100;
-          let uniqueYears: number[] = [
-            ...new Set(
-              filteredDates
-                .sort((a, b) => a.getTime() - b.getTime())
-                .map((v) => v.getFullYear())
-            ),
-          ];
-          let position = Math.floor(uniqueYears[0] / diffYears) * diffYears;
-          let lastPosition = Math.ceil(uniqueYears[uniqueYears.length - 1] / diffYears) * diffYears;
-          for (position; position < lastPosition; position += diffYears){
-            uniqueTarget.push(position);
-          }
-          parseFunc = (v: any) => new Date(String(v));
-          compareFunction = (v1: any, v2: any) => (
-            v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
-          );
-        } else {}
-        axises[AxisesNames[0] + 'Axis'] = {
-          title: { text: this.Capitalize(tile.axises[0]) + "'s" },
-          categories: uniqueTarget,
-        };
-        axises[AxisesNames[1] + 'Axis'] = {
-          title: { text: this.Capitalize(keyTarget) + "'s" },
-        };
-        for (let point of targetPoints) {
-          seriesData = uniqueTarget.map((v) => {
-            const Val = v;
-            return data.filter(
-              (item) => (
-                compareFunction(item['birthdate'], Val) &&
-                item[keyTarget] === point
-              )
-            ).length;
-          });
-          series.push({
-            type: tile.type,
-            name: point,
-            data: seriesData,
-          });
-        }
-      } else if (
-        tile.axises.length === 1 ||
-        (tile.axises[0] === 'birthdate' && tile.countby === 'for all time')
+      if (
+        tile.axises.length === 1 || tile.countby === 'for all time'
       ) {
         keyTarget = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
         uniqueTarget = [...new Set(data.map((item) => item[keyTarget]))];
@@ -326,6 +260,73 @@ export class ViewDataComponent {
           name: this.Capitalize(keyTarget) + "'s",
           data: seriesData,
         });
+      } else {
+        if (tile.axises[0] === 'birthdate') {
+          tile.countby = tile.countby ? tile.countby : 'days';
+          keyTarget = tile.axises[1];
+          if (tile.countby && countByFilter.includes(tile.countby)) {
+            var parseFunc: any = (str: string) => str;
+            if (tile.countby === 'days') {
+              mapFunction = (v: Date) => v.toISOString().split('T')[0];
+            } else if (tile.countby === 'months') {
+              mapFunction = (v: Date) => (
+                v.toISOString().split('T')[0]
+                .split('-').slice(0, 2).join('-')
+              );
+            } else {
+              mapFunction = (v: Date) => v.getFullYear();
+              parseFunc = parseInt;
+            }
+            uniqueTarget = [
+              ...new Set(filteredDates
+                          .sort((a, b) => a.getTime() - b.getTime())
+                          .map((v) => mapFunction(v))
+              ),
+            ];
+            compareFunction = (v1: any, v2: any) => (mapFunction(v1) === parseFunc(v2));
+          } else if (tile.countby !== 'dynamic') {
+            var diffYears: number =  tile.countby === 'decades' ? 10 : 100;
+            let uniqueYears: number[] = [
+              ...new Set(
+                filteredDates
+                  .sort((a, b) => a.getTime() - b.getTime())
+                  .map((v) => v.getFullYear())
+              ),
+            ];
+            let position = Math.floor(uniqueYears[0] / diffYears) * diffYears;
+            let lastPosition = Math.ceil(uniqueYears[uniqueYears.length - 1] / diffYears) * diffYears;
+            for (position; position < lastPosition; position += diffYears){
+              uniqueTarget.push(position);
+            }
+            parseFunc = (v: any) => new Date(String(v));
+            compareFunction = (v1: any, v2: any) => (
+              v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
+            );
+          } else {} // TODO: dynamic
+          axises[AxisesNames[0] + 'Axis'] = {
+            title: { text: this.Capitalize(tile.axises[0]) + "'s" },
+            categories: uniqueTarget,
+          };
+          axises[AxisesNames[1] + 'Axis'] = {
+            title: { text: this.Capitalize(keyTarget) + "'s" },
+          };
+          for (let point of targetPoints) {
+            seriesData = uniqueTarget.map((v) => {
+              const Val = v;
+              return data.filter(
+                (item) => (
+                  compareFunction(item['birthdate'], Val) &&
+                  item[keyTarget] === point
+                )
+              ).length;
+            });
+            series.push({
+              type: tile.type,
+              name: point,
+              data: seriesData,
+            });
+          }
+        }
       }
 
       let chartOptions: Highcharts.Options = {
