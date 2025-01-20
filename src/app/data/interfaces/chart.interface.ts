@@ -5,6 +5,7 @@ export const TypesOfChart = [
   'pie',
   'area',
   'spline',
+  // TODO: 'drilldown'
 ] as const;
 export type ChartType = (typeof TypesOfChart)[number];
 

@@ -1,11 +1,11 @@
 import {
   ChartData,
-  NamesOfFields,
   NamesOfType,
 } from './../data/interfaces/data.interface';
 import {
   AxisesNames,
   ChartSettings,
+  CountByType,
 } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
 import {
@@ -85,6 +85,7 @@ export class ViewDataComponent {
   max_date_signal = signal<Date | null>(null);
   tileBoardMobile: ChartTile[] = [];
   tileBoardDesktop: ChartTile[] = [];
+  private countByFilter: string[] = ['days', 'months', 'years'];
 
   constructor() {
     settingsStore.subscribe((state) => {
@@ -232,10 +233,6 @@ export class ViewDataComponent {
       let uniqueTarget: any[] = [];
       let keyTarget: NamesOfType = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
       let seriesData: any[] = [];
-      let countByFilter: string[] = ['days', 'months', 'years'];
-      let targetPoints: any = [...new Set(data.map((item) => item[keyTarget]))];
-      var mapFunction: any = (v: Date) => true;
-      var compareFunction: any = (v1: any, v2: any) => true;
 
       if (
         tile.axises.length === 1 || tile.countby === 'for all time'
@@ -261,55 +258,15 @@ export class ViewDataComponent {
           data: seriesData,
         });
       } else {
+        let mapFunction: any = (v: Date) => true;
+        let compareFunction: any = (v1: any, v2: any) => true;
+        let targetPoints: any = [...new Set(data.map((item) => item[keyTarget]))];
+
         if (tile.axises[0] === 'birthdate') {
-          tile.countby = tile.countby ? tile.countby : 'days';
-          keyTarget = tile.axises[1];
-          if (tile.countby && countByFilter.includes(tile.countby)) {
-            var parseFunc: any = (str: string) => str;
-            if (tile.countby === 'days') {
-              mapFunction = (v: Date) => v.toISOString().split('T')[0];
-            } else if (tile.countby === 'months') {
-              mapFunction = (v: Date) => (
-                v.toISOString().split('T')[0]
-                .split('-').slice(0, 2).join('-')
-              );
-            } else {
-              mapFunction = (v: Date) => v.getFullYear();
-              parseFunc = parseInt;
-            }
-            uniqueTarget = [
-              ...new Set(filteredDates
-                          .sort((a, b) => a.getTime() - b.getTime())
-                          .map((v) => mapFunction(v))
-              ),
-            ];
-            compareFunction = (v1: any, v2: any) => (mapFunction(v1) === parseFunc(v2));
-          } else if (tile.countby !== 'dynamic') {
-            var diffYears: number =  tile.countby === 'decades' ? 10 : 100;
-            let uniqueYears: number[] = [
-              ...new Set(
-                filteredDates
-                  .sort((a, b) => a.getTime() - b.getTime())
-                  .map((v) => v.getFullYear())
-              ),
-            ];
-            let position = Math.floor(uniqueYears[0] / diffYears) * diffYears;
-            let lastPosition = Math.ceil(uniqueYears[uniqueYears.length - 1] / diffYears) * diffYears;
-            for (position; position < lastPosition; position += diffYears){
-              uniqueTarget.push(position);
-            }
-            parseFunc = (v: any) => new Date(String(v));
-            compareFunction = (v1: any, v2: any) => (
-              v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
-            );
-          } else {} // TODO: dynamic
-          axises[AxisesNames[0] + 'Axis'] = {
-            title: { text: this.Capitalize(tile.axises[0]) + "'s" },
-            categories: uniqueTarget,
-          };
-          axises[AxisesNames[1] + 'Axis'] = {
-            title: { text: this.Capitalize(keyTarget) + "'s" },
-          };
+          let countby: string = tile.countby ? tile.countby : 'days';
+          [mapFunction, compareFunction] = this.getFunctions(countby);
+
+          uniqueTarget = this.getUniqueData(mapFunction, countby);
           for (let point of targetPoints) {
             seriesData = uniqueTarget.map((v) => {
               const Val = v;
@@ -327,6 +284,14 @@ export class ViewDataComponent {
             });
           }
         }
+
+        axises[AxisesNames[0] + 'Axis'] = {
+          title: { text: this.Capitalize(tile.axises[0]) + "'s" },
+          categories: uniqueTarget,
+        };
+        axises[AxisesNames[1] + 'Axis'] = {
+          title: { text: this.Capitalize(keyTarget) + "'s" },
+        };
       }
 
       let chartOptions: Highcharts.Options = {
@@ -350,6 +315,57 @@ export class ViewDataComponent {
       ++idx;
     }
     redraw.next(false);
+  }
+
+  getFunctions(countby: CountByType): any {
+    let mapFunc: any = (v:any) => true;
+    let parseFunc: any = (v:any)=>true;
+    let compareFunc: any = (v:any)=>true;
+
+    if (this.countByFilter.includes(countby)) {
+      parseFunc = String
+      if (countby === 'days') {
+        mapFunc = (v: Date) => v.toISOString().split('T')[0];
+      } else if (countby === 'months') {
+        mapFunc = (v: Date) => (
+          v.toISOString().split('T')[0]
+          .split('-').slice(0, 2).join('-')
+        );
+      } else {
+        mapFunc = (v: Date) => v.getFullYear();
+        parseFunc = parseInt;
+      }
+      compareFunc = (v1: any, v2: any) => (mapFunc(v1) === parseFunc(v2));
+    } else if (countby !== 'dynamic') {
+      let diffYears: number =  countby === 'decades' ? 10 : 100;
+      parseFunc = (v: number) => new Date(String(v))
+      compareFunc = (v1: any, v2: any) => (
+        v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
+      );
+    } else {} // TODO: dynamic
+
+    return [mapFunc, compareFunc]
+  }
+
+  getUniqueData(mapFunc: any, countby: CountByType): any[] {
+    let uniqueTarget: any[] = [];
+
+    if (this.countByFilter.includes(countby)) {
+      uniqueTarget = [
+        ...new Set(filteredDates.sort((a, b) => a.getTime() - b.getTime()).map(mapFunc)),
+      ];
+    } else if (countby !== 'dynamic') {
+      let diffYears: number =  countby === 'decades' ? 10 : 100;
+      let position: number = filteredDates.reduce(function (a, b) { return a < b ? a : b; }).getFullYear();
+      let lastPosition: number = filteredDates.reduce(function (a, b) { return a > b ? a : b; }).getFullYear();
+      position = Math.floor(position / diffYears) * diffYears;
+      lastPosition = Math.ceil(lastPosition / diffYears) * diffYears;
+      for (position; position < lastPosition; position += diffYears){
+        uniqueTarget.push(position);
+      }
+    } else {} // TODO: dynamic
+
+    return uniqueTarget
   }
 
   /** Based on the screen size, switch from standard to one column per row */
