@@ -27,6 +27,14 @@
     </mat-select>
   </mat-form-field>
 	@if (form.value.type) {
+  <mat-form-field class="full-width">
+    <mat-label>Color Scheme</mat-label>
+    <mat-select formControlName="colors">
+      @for (color of colorPalette; track color) {
+      <mat-option [value]="color.title">{{ color.title }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
 	<div formArrayName="axes">
 		@for (axis of makeAxesArray()['controls']; track $index; let idx = $index;) {
 		<mat-form-field class="full-width">

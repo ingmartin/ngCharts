@@ -1,6 +1,8 @@
 # ngCharts
 
-This is a ltest project to demonstrate my frontend skills. Project is based on Angular and uses next libraries:
+ngCharts is a versatile tool to visualize statistical data from various perspectives. It offers optional chart types (pie, line, bar, and etc), flexible value and date settings, customizable number of items, size and color variations, as well as a possibility to rearrange several charts simultaneously or deleting them all. ngCharts meets any requirements.  
+
+This is a test project to demonstrate my frontend skills. The project is based on Angular and uses the following libraries:
 * rxjs,
 * lodash,
 * [Angular Material](https://material.angular.io/),

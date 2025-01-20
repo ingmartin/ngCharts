@@ -12,12 +12,18 @@
           >{{ item.title }}</strong
         >
         <div>
-          Type: {{ item.type }}<br />
+          Type: {{ item.type }} //
+          @if (item.colors) {
+            Color Scheme: {{ item.colors }}
+          } @else{
+            Color Scheme: default
+          }
+          <br />
           Axes: {{ item.axes.join(', ') }}
           @if (item.axes.includes('birthdate') && item.countby) {
-            <br>Count by: {{ item.countby }}
+            // Count by: {{ item.countby }}
           } @else if (item.axes.includes('birthdate')) {
-            <br>Count by: {{ defaultCountBy }}
+            // Count by: {{ defaultCountBy }}
           }
         </div>
       </div>

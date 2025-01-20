@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy } from './../data/interfaces/chart.interface';
+import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorNames, ColorPalette } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
 import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
@@ -55,9 +55,7 @@ export class SettingsComponent {
       settingsStore
         .pipe<ChartSettings[] | []>(selectAllEntities())
         .subscribe((val) => {
-          if (val.length > 0) {
-            settings = val;
-          }
+          settings = val;
         });
       settingsLastUpdated = this.settingsUpdated;
       redraw.next(false);
@@ -75,6 +73,7 @@ export class SettingsComponent {
         subtitle: '',
         type: null,
         countby: null,
+        colors: null,
         axes: ['', ''],
       };
     }
@@ -130,6 +129,7 @@ export class FormComponent {
     wide: new FormControl(this.data.wide),
     tall: new FormControl(this.data.tall),
     remove: new FormControl(false),
+    colors: new FormControl(this.data.colors),
   });
   typesOfChart = TypesOfChart;
   listOfTargets = NamesOfFields;
@@ -138,6 +138,7 @@ export class FormComponent {
   selects: string[] = this.data.axes || [];
   minAxesNumber: number = this.data.type ==='pie' ? 1 : 2;
   dialog = inject(Dialog);
+  colorPalette = ColorPalette;
 
   setAxesLength(value: string) {
     this.minAxesNumber = value === 'pie' ? 1 : 2;
@@ -200,6 +201,7 @@ export class FormComponent {
         countby: this.form.value.countby ? this.form.value.countby : null,
         wide: this.form.value.wide ? this.form.value.wide : null,
         tall: this.form.value.tall ? this.form.value.tall : null,
+        colors: this.form.value.colors ? this.form.value.colors : null,
       }
       redraw.next(upsertSettingItem(this.data.id, data))
       this.dialogRef.close();

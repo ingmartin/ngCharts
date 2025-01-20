@@ -1,5 +1,5 @@
 import { ChartData, NamesTypeOfChart } from './../data/interfaces/data.interface';
-import { AxesNames, ChartSettings, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
+import { AxesNames, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
@@ -19,6 +19,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { settingsStore } from '../data/store/chart.store';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { Title } from '@angular/platform-browser';
 
 
 let dataLastUpdated: number = 0,
@@ -59,7 +60,6 @@ interface ChartTile {
     MatInputModule,
     MatDatepickerModule,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
@@ -73,6 +73,7 @@ export class ViewDataComponent {
   tileBoardDesktop: ChartTile[] = [];
   defaultCountBy = DefaultCountBy;
   private countByFilter: string[] = ['days', 'months', 'years'];
+  datepicker = false;
 
   constructor() {
     settingsStore.subscribe((state) => {
@@ -93,21 +94,19 @@ export class ViewDataComponent {
   getData() {
     if (dataLastUpdated < this.dataUpdated) {
       dataStore.pipe<ChartData[] | []>(selectAllEntities()).subscribe((val) => {
-        if (val.length > 0) {
-          data = val;
-          dates = [...new Set(data.map((item) => item.birthdate))];
-          filteredDates = dates;
-          min_date = dates.reduce(function (a, b) {
-            return a < b ? a : b;
-          });
-          max_date = dates.reduce(function (a, b) {
-            return a > b ? a : b;
-          });
-          this.setDates(min_date, max_date);
-          begin_date = min_date;
-          end_date = max_date;
-          redraw.next(true);
-        }
+        data = val;
+        dates = [...new Set(data.map((item) => item.birthdate))];
+        filteredDates = dates;
+        min_date = dates.reduce(function (a, b) {
+          return a < b ? a : b;
+        });
+        max_date = dates.reduce(function (a, b) {
+          return a > b ? a : b;
+        });
+        this.setDates(min_date, max_date);
+        begin_date = min_date;
+        end_date = max_date;
+        redraw.next(true);
       });
       dataLastUpdated = this.dataUpdated;
     } else {
@@ -121,12 +120,11 @@ export class ViewDataComponent {
       settingsStore
         .pipe<ChartSettings[] | []>(selectAllEntities())
         .subscribe((val) => {
-          if (val.length > 0) {
-            settings = val;
-          }
+          settings = val;
         });
       settingsLastUpdated = this.settingsUpdated;
     }
+    this.datepicker = Boolean(settings.length);
   }
 
   setDates(start_date: Date | null, finish_date: Date | null) {
@@ -170,6 +168,8 @@ export class ViewDataComponent {
 
   Capitalize(str: string): string {
     return str
+      .replace('birthdate', 'birth_date')
+      .replace('sex', 'gender')
       .split('_')
       .map((v) => v[0].toUpperCase() + v.substring(1))
       .join(' ');
@@ -286,8 +286,12 @@ export class ViewDataComponent {
           categories: abscissaValues,
         };
         axes[AxesNames[1] + 'Axis'] = {
-          title: { text: this.Capitalize(chartKey) },
+          title: { text: 'Values' },
         };
+      }
+
+      if (tile.colors && tile.colors !== 'default') {
+        ColorPalette.map((v: ColorScheme)=>{if (v.title === tile.colors) axes['colors'] = v.colors});
       }
 
       let chartOptions: Highcharts.Options = {

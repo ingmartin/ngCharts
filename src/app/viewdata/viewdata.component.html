@@ -1,5 +1,6 @@
 <div class="grid-container">
   <h1 class="mat-h1">Dashboard</h1>
+  @if (datepicker) {
   <div class="date-pickers">
     <mat-form-field class="example-full-width">
       <mat-label>Choose a date</mat-label>
@@ -28,6 +29,7 @@
       <mat-datepicker touchUi #picker_max></mat-datepicker>
     </mat-form-field> 
   </div>
+  }
   <mat-grid-list cols="2" rowHeight="450px">
     @for (card of cards | async; track $index + card.type) {
       <mat-grid-tile [colspan]="card.cols" [rowspan]="card.rows">

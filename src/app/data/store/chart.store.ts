@@ -11,8 +11,8 @@ export const settingsStore = createStore(
 );
 
 export function updateSettingsStore(data: ChartSettings[]): boolean {
-  updated += 1;
   settingsStore.update(setEntities(data));
+  updated += 1;
   settingsStore.update((state) => ({
     ...state,
     updated: updated,
