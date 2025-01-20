@@ -1,7 +1,7 @@
-import { ChartData, NamesTypeOfChart, } from './../data/interfaces/data.interface';
-import { AxesNames, ChartSettings, CountByType, } from './../data/interfaces/chart.interface';
+import { ChartData, NamesTypeOfChart } from './../data/interfaces/data.interface';
+import { AxesNames, ChartSettings, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
-import { ChangeDetectionStrategy, Component, inject, signal, } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
@@ -13,7 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { selectAllEntities, selectManyByPredicate } from '@ngneat/elf-entities';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
-import { MatDatepickerInputEvent, MatDatepickerModule, } from '@angular/material/datepicker';
+import { MatDatepickerInputEvent, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
@@ -71,6 +71,7 @@ export class ViewDataComponent {
   max_date_signal = signal<Date | null>(null);
   tileBoardMobile: ChartTile[] = [];
   tileBoardDesktop: ChartTile[] = [];
+  defaultCountBy = DefaultCountBy;
   private countByFilter: string[] = ['days', 'months', 'years'];
 
   constructor() {
@@ -88,12 +89,6 @@ export class ViewDataComponent {
   checkToRedraw(): Observable<boolean> {
     return redraw.asObservable();
   }
-
-  checker$ = this.checkToRedraw().subscribe((res) => {
-    if (res === true && dates.length > 0) {
-      this.setChartOptions();
-    }
-  });
 
   getData() {
     if (dataLastUpdated < this.dataUpdated) {
@@ -256,7 +251,7 @@ export class ViewDataComponent {
           abscissaValues = [...new Set(data.map((item) => item[comparedKey]))];
           compareFunc = (a:any, b:any)=>(a === b);
         } else {
-          let countby: string = tile.countby ? tile.countby : 'days';
+          let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
           [mapFunc, compareFunc] = this.getCountByFunctions(countby);
           abscissaValues = this.getCountByData(mapFunc, countby);
         }
@@ -264,7 +259,7 @@ export class ViewDataComponent {
         if (chartKey !== 'birthdate') {
           chartPoints = [...new Set(data.map((item) => item[chartKey]))];
         } else {
-          let countby: string = tile.countby ? tile.countby : 'days';
+          let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
           [mapFunc, pointFunc] = this.getCountByFunctions(countby);
           chartPoints = this.getCountByData(mapFunc, countby);
         }
@@ -378,4 +373,10 @@ export class ViewDataComponent {
       return this.tileBoardDesktop;
     })
   );
+
+  checker = this.checkToRedraw().subscribe((res) => {
+    if (res === true && dates.length > 0) {
+      this.setChartOptions();
+    }
+  });
 }

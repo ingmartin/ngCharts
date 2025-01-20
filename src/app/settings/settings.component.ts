@@ -1,8 +1,10 @@
 import * as _ from 'lodash';
-import { CountBy } from './../data/interfaces/chart.interface';
+import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
-import { Component, inject } from '@angular/core';
-import { ChartSettings, TypesOfChart, AxesNames } from '../data/interfaces/chart.interface';
+import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
+import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
+import { map } from 'rxjs/operators';
+import { AsyncPipe } from '@angular/common';
 import { deleteSettingItem, settingsStore, upsertSettingItem } from '../data/store/chart.store';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,13 +24,22 @@ let settings: ChartSettings[] = [],
 
 @Component({
   selector: 'app-settings',
-  imports: [MatGridListModule, MatButtonModule, MatIconModule, DialogModule],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
+  standalone: true,
+  imports: [
+    AsyncPipe,
+    MatGridListModule,
+    MatButtonModule,
+    MatIconModule,
+    DialogModule
+  ],
 })
 export class SettingsComponent {
+  private breakpointObserver = inject(BreakpointObserver);
   private settingsUpdated: number = 0;
   settings: ChartSettings[] = [];
+  defaultCountBy = DefaultCountBy;
   dialog = inject(Dialog);
 
   constructor() {
@@ -38,16 +49,6 @@ export class SettingsComponent {
   checkToRedraw(): Observable<boolean> {
     return redraw.asObservable();
   }
-
-  checker$ = this.checkToRedraw().subscribe(res => {
-    if (res) {
-      settingsStore.subscribe((state) => {
-        this.settingsUpdated = state.updated;
-        this.getSettings();
-        this.settings = settings;
-      });
-    }
-  });
 
   getSettings() {
     if (settingsLastUpdated < this.settingsUpdated) {
@@ -84,6 +85,23 @@ export class SettingsComponent {
       },
     });
   }
+
+  bp$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map(({ matches }) => {
+      if (matches) { return 2; }
+      return 0;
+    })
+  );
+
+  checker = this.checkToRedraw().subscribe(res => {
+    if (res) {
+      settingsStore.subscribe((state) => {
+        this.settingsUpdated = state.updated;
+        this.getSettings();
+        this.settings = settings;
+      });
+    }
+  });
 }
 
 @Component({

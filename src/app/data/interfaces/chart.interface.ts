@@ -19,6 +19,7 @@ export const CountBy = [
   'for all time',
 ]
 export type CountByType = (typeof CountBy)[number];
+export const DefaultCountBy: CountByType = 'decades';
 
 export const AxesNames = ['x', 'y', 'z'];
 
@@ -56,8 +57,7 @@ export const defaultChartSettings: ChartSettings[] = [
     title: 'Blood Group Chart',
     subtitle: null,
     type: 'pie',
-    axes: ['birthdate', 'blood_group',],
-    countby: 'for all time',
+    axes: ['blood_group',],
   },
   {
     id: 4,

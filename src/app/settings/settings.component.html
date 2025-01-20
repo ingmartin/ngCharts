@@ -2,21 +2,22 @@
   <h1 class="mat-h1">Settings</h1>
   <mat-grid-list cols="2" rowHeight="100px" [gutterSize]="'10px'">
     @for (item of settings; track item) {
-    <mat-grid-tile [colspan]="item.wide ? 2 : 1" [rowspan]="item.tall ? 2 : 1">
+    <mat-grid-tile
+      style="cursor: pointer" (click)="openDialog(item)"
+      [colspan]="(bp$ | async) ? 2 : (item.wide ? 2 : 1)"
+      [rowspan]="item.tall ? 2 : 1">
       <div class="card">
         <strong
           class="mat-h3"
-          style="cursor: pointer"
-          (click)="openDialog(item)"
           >{{ item.title }}</strong
         >
         <div>
           Type: {{ item.type }}<br />
-          Axes: {{item.axes.join(', ')}}
-          @if (item.countby) {
+          Axes: {{ item.axes.join(', ') }}
+          @if (item.axes.includes('birthdate') && item.countby) {
             <br>Count by: {{ item.countby }}
           } @else if (item.axes.includes('birthdate')) {
-            <br>Count by: days
+            <br>Count by: {{ defaultCountBy }}
           }
         </div>
       </div>
