@@ -1,5 +1,5 @@
 import { ChartData, NamesTypeOfChart, } from './../data/interfaces/data.interface';
-import { AxisesNames, ChartSettings, CountByType, } from './../data/interfaces/chart.interface';
+import { AxesNames, ChartSettings, CountByType, } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
 import { ChangeDetectionStrategy, Component, inject, signal, } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
@@ -214,16 +214,17 @@ export class ViewDataComponent {
   setChartOptions() {
     let idx: number = 0;
     for (let tile of settings) {
-      let axises: any = {};
+      let axes: any = {};
       let series: any = [];
       let abscissaValues: any[] = [];
-      let chartKey: NamesTypeOfChart = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
+      let chartKey: NamesTypeOfChart = tile.axes.length === 1 ? tile.axes[0] : tile.axes[1];
       let seriesData: any[] = [];
 
       if (
-        tile.axises.length === 1 || tile.countby === 'for all time'
+        tile.axes.length === 1 ||
+        (tile.axes.includes('birthdate') && tile.countby === 'for all time')
       ) {
-        chartKey = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
+        chartKey = tile.axes.length === 1 ? tile.axes[0] : tile.axes[1];
         abscissaValues = [...new Set(data.map((item) => item[chartKey]))];
         seriesData = abscissaValues.map((v) => {
           const Val = v;
@@ -232,23 +233,24 @@ export class ViewDataComponent {
             y: data.filter((item) => item[chartKey] === Val).length,
           };
         });
-        if (tile.axises.length > 1) {
-          axises[AxisesNames[0] + 'Axis'] = {
-            title: { text: this.Capitalize(chartKey) + "'s" },
+        series.push({
+          type: tile.type,
+          name: this.Capitalize(chartKey),
+          data: seriesData,
+        });
+
+        if (tile.axes.length > 1) {
+          axes[AxesNames[0] + 'Axis'] = {
+            title: { text: this.Capitalize(chartKey) },
             categories: abscissaValues,
           };
         }
-        series.push({
-          type: tile.type,
-          name: this.Capitalize(chartKey) + "'s",
-          data: seriesData,
-        });
       } else {
         let mapFunc: any = (v: Date) => true;
         let compareFunc: any = (v1: any, v2: any) => true;
         let pointFunc: any = (a:any, b:any)=>(a === b);
         let chartPoints: any;
-        let comparedKey: NamesTypeOfChart = tile.axises[0];
+        let comparedKey: NamesTypeOfChart = tile.axes[0];
 
         if (comparedKey !== 'birthdate') {
           abscissaValues = [...new Set(data.map((item) => item[comparedKey]))];
@@ -284,12 +286,12 @@ export class ViewDataComponent {
           });
         }
 
-        axises[AxisesNames[0] + 'Axis'] = {
-          title: { text: this.Capitalize(tile.axises[0]) + "'s" },
+        axes[AxesNames[0] + 'Axis'] = {
+          title: { text: this.Capitalize(comparedKey) },
           categories: abscissaValues,
         };
-        axises[AxisesNames[1] + 'Axis'] = {
-          title: { text: this.Capitalize(chartKey) + "'s" },
+        axes[AxesNames[1] + 'Axis'] = {
+          title: { text: this.Capitalize(chartKey) },
         };
       }
 
@@ -298,7 +300,7 @@ export class ViewDataComponent {
         title: { text: tile.title },
         subtitle: { text: tile.subtitle ? tile.subtitle : '' },
         accessibility: { enabled: false },
-        ...axises,
+        ...axes,
         series: series,
       };
       this.tileBoardDesktop[idx] = {

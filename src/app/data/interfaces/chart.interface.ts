@@ -20,14 +20,14 @@ export const CountBy = [
 ]
 export type CountByType = (typeof CountBy)[number];
 
-export const AxisesNames = ['x', 'y', 'z'];
+export const AxesNames = ['x', 'y', 'z'];
 
 export interface ChartSettings {
   id: number;
   title: string;
   subtitle: string | null;
   type: ChartType;
-  axises: any[];
+  axes: any[];
   countby?: CountByType; 
   wide?: boolean;
   tall?: boolean;
@@ -40,7 +40,7 @@ export const defaultChartSettings: ChartSettings[] = [
     subtitle: 'Default Chart',
     type: 'spline',
     wide: true,
-    axises: ['birthdate', 'blood_group',],
+    axes: ['birthdate', 'blood_group',],
     countby: 'decades',
   },
   {
@@ -48,7 +48,7 @@ export const defaultChartSettings: ChartSettings[] = [
     title: 'Gender Chart',
     subtitle: null,
     type: 'column',
-    axises: ['birthdate', 'sex',],
+    axes: ['birthdate', 'sex',],
     countby: 'decades',
   },
   {
@@ -56,7 +56,7 @@ export const defaultChartSettings: ChartSettings[] = [
     title: 'Blood Group Chart',
     subtitle: null,
     type: 'pie',
-    axises: ['birthdate', 'blood_group',],
+    axes: ['birthdate', 'blood_group',],
     countby: 'for all time',
   },
   {
@@ -66,7 +66,7 @@ export const defaultChartSettings: ChartSettings[] = [
     type: 'bar',
     wide: true,
     tall: true,
-    axises: ['birthdate', 'job',],
+    axes: ['birthdate', 'job',],
     countby: 'for all time',
   },
 ];

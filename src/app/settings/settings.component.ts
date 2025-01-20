@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { CountBy } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
 import { Component, inject } from '@angular/core';
-import { ChartSettings, TypesOfChart, AxisesNames } from '../data/interfaces/chart.interface';
+import { ChartSettings, TypesOfChart, AxesNames } from '../data/interfaces/chart.interface';
 import { deleteSettingItem, settingsStore, upsertSettingItem } from '../data/store/chart.store';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
@@ -74,7 +74,7 @@ export class SettingsComponent {
         subtitle: '',
         type: null,
         countby: null,
-        axises: ['', ''],
+        axes: ['', ''],
       };
     }
     this.dialog.open(FormComponent, {
@@ -107,7 +107,7 @@ export class FormComponent {
     title: new FormControl(this.data.title, Validators.required),
     subtitle: new FormControl(this.data.subtitle),
     type: new FormControl(this.data.type, Validators.required),
-    axises: new FormArray([new FormControl('', Validators.required)]),
+    axes: new FormArray([new FormControl('', Validators.required)]),
     countby: new FormControl(this.data.countby),
     wide: new FormControl(this.data.wide),
     tall: new FormControl(this.data.tall),
@@ -115,36 +115,36 @@ export class FormComponent {
   });
   typesOfChart = TypesOfChart;
   listOfTargets = NamesOfFields;
-  axisesNames = AxisesNames;
+  axesNames = AxesNames;
   countBy = CountBy;
-  selects: string[] = this.data.axises || [];
-  minAxisesNumber: number = this.data.type ==='pie' ? 1 : 2;
+  selects: string[] = this.data.axes || [];
+  minAxesNumber: number = this.data.type ==='pie' ? 1 : 2;
   dialog = inject(Dialog);
 
-  setAxisesLength(value: string) {
-    this.minAxisesNumber = value === 'pie' ? 1 : 2;
+  setAxesLength(value: string) {
+    this.minAxesNumber = value === 'pie' ? 1 : 2;
   }
 
-  makeAxisesArray(): FormArray {
-    this.form.controls['axises'].clear();
-    if (this.data.axises) {
-      for (let axis of this.data.axises) {
-        this.form.controls['axises'].push(
+  makeAxesArray(): FormArray {
+    this.form.controls['axes'].clear();
+    if (this.data.axes) {
+      for (let axis of this.data.axes) {
+        this.form.controls['axes'].push(
           new FormControl(axis, Validators.required)
         );
       }
     }
-    let axisesLength = this.form.controls['axises'].length;
-    if (axisesLength < this.minAxisesNumber) {
-      for (let i = axisesLength; i < this.minAxisesNumber; i++) {
-        this.form.controls['axises'].push(
+    let axesLength = this.form.controls['axes'].length;
+    if (axesLength < this.minAxesNumber) {
+      for (let i = axesLength; i < this.minAxesNumber; i++) {
+        this.form.controls['axes'].push(
           new FormControl('', Validators.required)
         );
       }
-    } else if (axisesLength > this.minAxisesNumber) {
-      this.form.controls['axises'].removeAt(this.minAxisesNumber);
+    } else if (axesLength > this.minAxesNumber) {
+      this.form.controls['axes'].removeAt(this.minAxesNumber);
     }
-    return this.form.controls['axises'] as FormArray;
+    return this.form.controls['axes'] as FormArray;
   }
 
   onChange(value: string, index: number) {
@@ -153,7 +153,7 @@ export class FormComponent {
 
   checkDisabled(index:number, value: string): boolean {
     let result: boolean = this.selects
-                            .slice(0, this.minAxisesNumber)
+                            .slice(0, this.minAxesNumber)
                             .filter((v, i, a) => i !== index)
                             .includes(value);
     return result;
@@ -178,7 +178,7 @@ export class FormComponent {
         title: this.form.value.title,
         subtitle: this.form.value.subtitle ? this.form.value.subtitle: null,
         type: this.form.value.type,
-        axises: this.form.value.axises ? this.form.value.axises : [],
+        axes: this.form.value.axes ? this.form.value.axes : [],
         countby: this.form.value.countby ? this.form.value.countby : null,
         wide: this.form.value.wide ? this.form.value.wide : null,
         tall: this.form.value.tall ? this.form.value.tall : null,

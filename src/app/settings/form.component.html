@@ -20,17 +20,17 @@
   </mat-form-field>
   <mat-form-field class="full-width">
     <mat-label>Type of Chart</mat-label>
-    <mat-select formControlName="type" (selectionChange)="setAxisesLength($event.value)">
+    <mat-select formControlName="type" (selectionChange)="setAxesLength($event.value)">
       @for (chart_type of typesOfChart; track chart_type) {
       <mat-option [value]="chart_type">{{ chart_type }}</mat-option>
       }
     </mat-select>
   </mat-form-field>
 	@if (form.value.type) {
-	<div formArrayName="axises">
-		@for (axis of makeAxisesArray()['controls']; track $index; let idx = $index;) {
+	<div formArrayName="axes">
+		@for (axis of makeAxesArray()['controls']; track $index; let idx = $index;) {
 		<mat-form-field class="full-width">
-			<mat-label>Axis {{ axisesNames[$index] }}</mat-label>
+			<mat-label>Axis {{ axesNames[$index] }}</mat-label>
 			<mat-select formControlName="{{$index}}" (selectionChange)="onChange($event.value, $index)">
 				@for (target of listOfTargets; track $index + '_' + target) {
           @if (!checkDisabled(idx, target)){
@@ -42,10 +42,10 @@
 		}
 	</div>
 	}
-  @if (selects.slice(0, minAxisesNumber).includes("birthdate")) {
+  @if (selects.slice(0, minAxesNumber).includes("birthdate")) {
     <mat-form-field class="full-width">
       <mat-label>Count By</mat-label>
-      <mat-select formControlName="countby" (selectionChange)="setAxisesLength($event.value)">
+      <mat-select formControlName="countby" (selectionChange)="setAxesLength($event.value)">
         @for (counter of countBy; track counter) {
         <mat-option [value]="counter">{{ counter }}</mat-option>
         }

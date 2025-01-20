@@ -12,10 +12,10 @@
         >
         <div>
           Type: {{ item.type }}<br />
-          Axises: {{item.axises.join(', ')}}
+          Axes: {{item.axes.join(', ')}}
           @if (item.countby) {
             <br>Count by: {{ item.countby }}
-          } @else if (item.axises.includes('birthdate')) {
+          } @else if (item.axes.includes('birthdate')) {
             <br>Count by: days
           }
         </div>
