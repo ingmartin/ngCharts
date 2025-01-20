@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { CountBy } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
 import { Component, inject } from '@angular/core';
@@ -13,7 +14,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NamesOfFields } from '../data/interfaces/data.interface';
-import * as _ from 'lodash';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 let settings: ChartSettings[] = [],

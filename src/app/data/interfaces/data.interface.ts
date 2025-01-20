@@ -6,7 +6,7 @@ export const NamesOfFields = [
   'company',
   'birthdate',
 ] as const;
-export type NamesOfType = (typeof NamesOfFields)[number];
+export type NamesTypeOfChart = (typeof NamesOfFields)[number];
 
 export interface ChartData {
   id: number;

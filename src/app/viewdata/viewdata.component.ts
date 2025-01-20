@@ -1,19 +1,7 @@
-import {
-  ChartData,
-  NamesOfType,
-} from './../data/interfaces/data.interface';
-import {
-  AxisesNames,
-  ChartSettings,
-  CountByType,
-} from './../data/interfaces/chart.interface';
+import { ChartData, NamesTypeOfChart, } from './../data/interfaces/data.interface';
+import { AxisesNames, ChartSettings, CountByType, } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
@@ -25,15 +13,13 @@ import { MatCardModule } from '@angular/material/card';
 import { selectAllEntities, selectManyByPredicate } from '@ngneat/elf-entities';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
-import {
-  MatDatepickerInputEvent,
-  MatDatepickerModule,
-} from '@angular/material/datepicker';
+import { MatDatepickerInputEvent, MatDatepickerModule, } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { settingsStore } from '../data/store/chart.store';
 import { BehaviorSubject, Observable } from 'rxjs';
+
 
 let dataLastUpdated: number = 0,
   data: ChartData[] = [],
@@ -230,67 +216,80 @@ export class ViewDataComponent {
     for (let tile of settings) {
       let axises: any = {};
       let series: any = [];
-      let uniqueTarget: any[] = [];
-      let keyTarget: NamesOfType = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
+      let abscissaValues: any[] = [];
+      let chartKey: NamesTypeOfChart = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
       let seriesData: any[] = [];
 
       if (
         tile.axises.length === 1 || tile.countby === 'for all time'
       ) {
-        keyTarget = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
-        uniqueTarget = [...new Set(data.map((item) => item[keyTarget]))];
-        seriesData = uniqueTarget.map((v) => {
+        chartKey = tile.axises.length === 1 ? tile.axises[0] : tile.axises[1];
+        abscissaValues = [...new Set(data.map((item) => item[chartKey]))];
+        seriesData = abscissaValues.map((v) => {
           const Val = v;
           return {
             name: Val,
-            y: data.filter((item) => item[keyTarget] === Val).length,
+            y: data.filter((item) => item[chartKey] === Val).length,
           };
         });
         if (tile.axises.length > 1) {
           axises[AxisesNames[0] + 'Axis'] = {
-            title: { text: this.Capitalize(keyTarget) + "'s" },
-            categories: uniqueTarget,
+            title: { text: this.Capitalize(chartKey) + "'s" },
+            categories: abscissaValues,
           };
         }
         series.push({
           type: tile.type,
-          name: this.Capitalize(keyTarget) + "'s",
+          name: this.Capitalize(chartKey) + "'s",
           data: seriesData,
         });
       } else {
-        let mapFunction: any = (v: Date) => true;
-        let compareFunction: any = (v1: any, v2: any) => true;
-        let targetPoints: any = [...new Set(data.map((item) => item[keyTarget]))];
+        let mapFunc: any = (v: Date) => true;
+        let compareFunc: any = (v1: any, v2: any) => true;
+        let pointFunc: any = (a:any, b:any)=>(a === b);
+        let chartPoints: any;
+        let comparedKey: NamesTypeOfChart = tile.axises[0];
 
-        if (tile.axises[0] === 'birthdate') {
+        if (comparedKey !== 'birthdate') {
+          abscissaValues = [...new Set(data.map((item) => item[comparedKey]))];
+          compareFunc = (a:any, b:any)=>(a === b);
+        } else {
           let countby: string = tile.countby ? tile.countby : 'days';
-          [mapFunction, compareFunction] = this.getFunctions(countby);
+          [mapFunc, compareFunc] = this.getCountByFunctions(countby);
+          abscissaValues = this.getCountByData(mapFunc, countby);
+        }
 
-          uniqueTarget = this.getUniqueData(mapFunction, countby);
-          for (let point of targetPoints) {
-            seriesData = uniqueTarget.map((v) => {
-              const Val = v;
-              return data.filter(
-                (item) => (
-                  compareFunction(item['birthdate'], Val) &&
-                  item[keyTarget] === point
-                )
-              ).length;
-            });
-            series.push({
-              type: tile.type,
-              name: point,
-              data: seriesData,
-            });
-          }
+        if (chartKey !== 'birthdate') {
+          chartPoints = [...new Set(data.map((item) => item[chartKey]))];
+        } else {
+          let countby: string = tile.countby ? tile.countby : 'days';
+          [mapFunc, pointFunc] = this.getCountByFunctions(countby);
+          chartPoints = this.getCountByData(mapFunc, countby);
+        }
+
+        for (let point of chartPoints) {
+          seriesData = abscissaValues.map((v) => {
+            let Val = v;
+            return data.filter(
+              (item) => (
+                compareFunc(item[comparedKey], Val) &&
+                pointFunc(item[chartKey], point)
+              )
+            ).length;
+          });
+          series.push({
+            type: tile.type,
+            name: point,
+            data: seriesData,
+          });
         }
 
         axises[AxisesNames[0] + 'Axis'] = {
           title: { text: this.Capitalize(tile.axises[0]) + "'s" },
-          categories: uniqueTarget,
+          categories: abscissaValues,
         };
         axises[AxisesNames[1] + 'Axis'] = {
-          title: { text: this.Capitalize(keyTarget) + "'s" },
+          title: { text: this.Capitalize(chartKey) + "'s" },
         };
       }
 
@@ -317,7 +316,7 @@ export class ViewDataComponent {
     redraw.next(false);
   }
 
-  getFunctions(countby: CountByType): any {
+  getCountByFunctions(countby: CountByType): any {
     let mapFunc: any = (v:any) => true;
     let parseFunc: any = (v:any)=>true;
     let compareFunc: any = (v:any)=>true;
@@ -347,11 +346,11 @@ export class ViewDataComponent {
     return [mapFunc, compareFunc]
   }
 
-  getUniqueData(mapFunc: any, countby: CountByType): any[] {
-    let uniqueTarget: any[] = [];
+  getCountByData(mapFunc: any, countby: CountByType): any[] {
+    let axisValues: any[] = [];
 
     if (this.countByFilter.includes(countby)) {
-      uniqueTarget = [
+      axisValues = [
         ...new Set(filteredDates.sort((a, b) => a.getTime() - b.getTime()).map(mapFunc)),
       ];
     } else if (countby !== 'dynamic') {
@@ -361,11 +360,11 @@ export class ViewDataComponent {
       position = Math.floor(position / diffYears) * diffYears;
       lastPosition = Math.ceil(lastPosition / diffYears) * diffYears;
       for (position; position < lastPosition; position += diffYears){
-        uniqueTarget.push(position);
+        axisValues.push(position);
       }
     } else {} // TODO: dynamic
 
-    return uniqueTarget
+    return axisValues
   }
 
   /** Based on the screen size, switch from standard to one column per row */
