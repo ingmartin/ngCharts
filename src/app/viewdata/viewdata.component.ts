@@ -91,7 +91,7 @@ export class ViewDataComponent {
     return redraw.asObservable();
   }
 
-  getData() {
+  getData(): void {
     if (dataLastUpdated < this.dataUpdated) {
       dataStore.pipe<ChartData[] | []>(selectAllEntities()).subscribe((val) => {
         data = val;
@@ -115,7 +115,7 @@ export class ViewDataComponent {
     }
   }
 
-  getSettings() {
+  getSettings(): void {
     if (settingsLastUpdated < this.settingsUpdated) {
       settingsStore
         .pipe<ChartSettings[] | []>(selectAllEntities())
@@ -127,14 +127,14 @@ export class ViewDataComponent {
     this.datepicker = Boolean(settings.length);
   }
 
-  setDates(start_date: Date | null, finish_date: Date | null) {
+  setDates(start_date: Date | null, finish_date: Date | null): void {
     this.min_date_signal.set(min_date);
     this.max_date_signal.set(max_date);
     this.start_date_signal.set(start_date);
     this.finish_date_signal.set(finish_date);
   }
 
-  filterData() {
+  filterData(): void {
     let from = this.start_date_signal();
     let to = this.finish_date_signal();
     if (from != null && to != null) {
@@ -154,13 +154,13 @@ export class ViewDataComponent {
     }
   }
 
-  setStartDate(event: MatDatepickerInputEvent<Date>) {
+  setStartDate(event: MatDatepickerInputEvent<Date>): void {
     this.start_date_signal.set(event.value);
     begin_date = event.value;
     this.filterData();
   }
 
-  setFinishDate(event: MatDatepickerInputEvent<Date>) {
+  setFinishDate(event: MatDatepickerInputEvent<Date>): void {
     this.finish_date_signal.set(event.value);
     end_date = event.value;
     this.filterData();
@@ -175,7 +175,7 @@ export class ViewDataComponent {
       .join(' ');
   }
 
-  setTiles() {
+  setTiles(): void {
     this.tileBoardMobile = [];
     this.tileBoardDesktop = [];
     let idx: number = 0;
@@ -206,7 +206,7 @@ export class ViewDataComponent {
     }
   }
 
-  setChartOptions() {
+  setChartOptions(): void {
     let idx: number = 0;
     for (let tile of settings) {
       let axes: any = {};
@@ -317,7 +317,7 @@ export class ViewDataComponent {
     redraw.next(false);
   }
 
-  getCountByFunctions(countby: CountByType): any {
+  getCountByFunctions(countby: CountByType): object[] {
     let mapFunc: any = (v:any) => true;
     let parseFunc: any = (v:any)=>true;
     let compareFunc: any = (v:any)=>true;

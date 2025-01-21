@@ -50,7 +50,7 @@ export class SettingsComponent {
     return redraw.asObservable();
   }
 
-  getSettings() {
+  getSettings(): void {
     if (settingsLastUpdated < this.settingsUpdated) {
       settingsStore
         .pipe<ChartSettings[] | []>(selectAllEntities())
@@ -62,7 +62,7 @@ export class SettingsComponent {
     }
   }
 
-  openDialog(item?: ChartSettings) {
+  openDialog(item?: ChartSettings): void {
     let data = {};
     if (item) {
       data = _.cloneDeep(item);
@@ -140,7 +140,7 @@ export class FormComponent {
   dialog = inject(Dialog);
   colorPalette = ColorPalette;
 
-  setAxesLength(value: string) {
+  setAxesLength(value: string): void {
     this.minAxesNumber = value === 'pie' ? 1 : 2;
   }
 
@@ -166,7 +166,7 @@ export class FormComponent {
     return this.form.controls['axes'] as FormArray;
   }
 
-  onChange(value: string, index: number) {
+  onChange(value: string, index: number): void {
     this.selects[index] = value;
   }
 
@@ -178,7 +178,7 @@ export class FormComponent {
     return result;
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.form.value.remove) {
       this.dialogRef.close();
       this.dialog.open(ConfirmComponent, {
@@ -222,7 +222,7 @@ export class ConfirmComponent {
   data = inject(DIALOG_DATA);
   dialogRef = inject(DialogRef);
 
-  onAgree() {
+  onAgree(): void {
     redraw.next(deleteSettingItem(this.data.id));
     this.dialogRef.close();
   }

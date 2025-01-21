@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ChartData } from '../interfaces/data.interface';
@@ -11,7 +12,7 @@ export class DataService {
 
   constructor() { }
 
-  getChartData() {
+  getChartData(): Observable<ChartData[]> {
     return this.http.get<ChartData[]>(this.apiUrl)
   }
 }
