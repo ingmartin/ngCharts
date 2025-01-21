@@ -4,7 +4,7 @@
     @for (item of settings; track item) {
     <mat-grid-tile
       style="cursor: pointer" (click)="openDialog(item)"
-      [colspan]="(bp$ | async) ? 2 : (item.wide ? 2 : 1)"
+      [colspan]="(bp | async) ? 2 : (item.wide ? 2 : 1)"
       [rowspan]="item.tall ? 2 : 1">
       <div class="card">
         <strong

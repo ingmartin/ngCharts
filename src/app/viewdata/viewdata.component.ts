@@ -1,7 +1,7 @@
 import { ChartData, NamesTypeOfChart } from './../data/interfaces/data.interface';
 import { AxesNames, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
 import { dataStore } from './../data/store/data.store';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
@@ -19,8 +19,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { settingsStore } from '../data/store/chart.store';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Title } from '@angular/platform-browser';
-
 
 let dataLastUpdated: number = 0,
   data: ChartData[] = [],

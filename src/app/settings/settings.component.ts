@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorNames, ColorPalette } from './../data/interfaces/chart.interface';
+import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorPalette } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
 import { Component, inject } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
@@ -85,10 +85,10 @@ export class SettingsComponent {
     });
   }
 
-  bp$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+  bp = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map(({ matches }) => {
-      if (matches) { return 2; }
-      return 0;
+      if (matches) { return true; }
+      return false;
     })
   );
 
