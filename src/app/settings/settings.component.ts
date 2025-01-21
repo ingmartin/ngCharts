@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorNames, ColorPalette } from './../data/interfaces/chart.interface';
 import { selectAllEntities } from '@ngneat/elf-entities';
-import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
@@ -32,7 +32,7 @@ let settings: ChartSettings[] = [],
     MatGridListModule,
     MatButtonModule,
     MatIconModule,
-    DialogModule
+    DialogModule,
   ],
 })
 export class SettingsComponent {
@@ -67,7 +67,7 @@ export class SettingsComponent {
     if (item) {
       data = _.cloneDeep(item);
     } else {
-      data ={
+      data = {
         id: 0,
         title: '',
         subtitle: '',

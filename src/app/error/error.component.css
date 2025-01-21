@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  background: var(--mat-sys-background);
+  border-radius: 8px;
+  padding: 8px 16px;
+  min-width: 25vw;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.full-width {
+  display: block;
+  width: 100%;
+}
+
+.mb10{
+  margin-bottom: 10px;
+}
+
+.pv10{
+  padding: 10px 0;
+}
+
+.warning {
+  font-style: italic;
+  color: var(--mat-sys-error);
+}
