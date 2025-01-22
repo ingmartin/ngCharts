@@ -1,26 +1,25 @@
+import { Injectable } from '@angular/core';
 import { ChartData } from './../interfaces/data.interface';
-import { createStore, withProps } from '@ngneat/elf';
-import { setEntities, withEntities } from '@ngneat/elf-entities';
+import { abStore } from "./abstract.store";
+import { selectManyByPredicate } from '@ngneat/elf-entities';
 
-let updated: number = 0;
+@Injectable({ providedIn: 'root' })
+export class DataStore extends abStore<ChartData>{
+  constructor() {
+    super('dataStore');
+  }
 
-export const dataStore = createStore(
-  { name: 'data' },
-  withEntities<ChartData>(),
-  withProps<{ updated: number }>({ updated: updated })
-);
+  updateDataStore(data: ChartData[]): boolean {
+    data = data.map((val) => {
+      val.birthdate = new Date(val.birthdate);
+      val.all = 'all';
+      return val;
+    });
+    return this.updateStore(data)
+  }
 
-export function updateDataStore(data: ChartData[]): boolean {
-  updated += 1;
-  data = data.map((val) => {
-    val.birthdate = new Date(val.birthdate);
-    val.all = 'all';
-    return val;
-  });
-  dataStore.update(setEntities(data));
-  dataStore.update((state) => ({
-    ...state,
-    updated: updated,
-  }));
-  return true;
+  selectManyByPredicate(predicate: any) {
+    return this.store
+          .pipe<ChartData[] | []>(selectManyByPredicate(predicate));
+  }
 }

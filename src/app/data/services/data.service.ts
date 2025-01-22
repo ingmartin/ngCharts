@@ -3,16 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ChartData } from '../interfaces/data.interface';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class DataService {
-  http : HttpClient = inject(HttpClient);
-  apiUrl : string = 'http://localhost:8080/';
+  http: HttpClient = inject(HttpClient);
+  apiUrl: string = 'http://localhost:8080/';
 
-  constructor() { }
+  constructor() {}
 
   getChartData(): Observable<ChartData[]> {
-    return this.http.get<ChartData[]>(this.apiUrl)
+    return this.http.get<ChartData[]>(this.apiUrl);
   }
 }

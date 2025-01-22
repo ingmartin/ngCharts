@@ -1,6 +1,6 @@
 import { ChartData, NamesTypeOfChart } from './../data/interfaces/data.interface';
 import { AxesNames, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
-import { dataStore } from './../data/store/data.store';
+import { DataStore } from './../data/store/data.store';
 import { Component, inject, signal } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
@@ -10,14 +10,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { selectAllEntities, selectManyByPredicate } from '@ngneat/elf-entities';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { MatDatepickerInputEvent, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { settingsStore } from '../data/store/chart.store';
+import { SettingsStore } from '../data/store/chart.store';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 let dataLastUpdated: number = 0,
@@ -72,17 +71,17 @@ export class ViewDataComponent {
   defaultCountBy = DefaultCountBy;
   private countByFilter: string[] = ['days', 'months', 'years'];
   datepicker = false;
+  dataStore = inject(DataStore);
+  settingsStore = inject(SettingsStore);
 
   constructor() {
-    settingsStore.subscribe((state) => {
-      this.settingsUpdated = state.updated;
+    this.settingsStore.store.subscribe((state) => {
       this.getSettings();
       this.setTiles();
     });
-    dataStore.subscribe((state) => {
-      this.dataUpdated = state.updated;
+    this.dataStore.store.subscribe((state) => {
       this.getData();
-    });
+    })
   }
 
   checkToRedraw(): Observable<boolean> {
@@ -90,8 +89,9 @@ export class ViewDataComponent {
   }
 
   getData(): void {
+    this.dataUpdated = this.dataStore.getUpdated();
     if (dataLastUpdated < this.dataUpdated) {
-      dataStore.pipe<ChartData[] | []>(selectAllEntities()).subscribe((val) => {
+      this.dataStore.getAllStoreData().subscribe((val) => {
         data = val;
         dates = [...new Set(data.map((item) => item.birthdate))];
         filteredDates = dates;
@@ -114,9 +114,9 @@ export class ViewDataComponent {
   }
 
   getSettings(): void {
+    this.settingsUpdated = this.settingsStore.getUpdated();
     if (settingsLastUpdated < this.settingsUpdated) {
-      settingsStore
-        .pipe<ChartSettings[] | []>(selectAllEntities())
+      this.settingsStore.getAllStoreData()
         .subscribe((val) => {
           settings = val;
         });
@@ -136,11 +136,8 @@ export class ViewDataComponent {
     let from = this.start_date_signal();
     let to = this.finish_date_signal();
     if (from != null && to != null) {
-      dataStore
-        .pipe<ChartData[] | []>(
-          selectManyByPredicate(
-            (entity) => entity.birthdate >= from && entity.birthdate <= to
-          )
+      this.dataStore.selectManyByPredicate(
+          (entity: any) => entity.birthdate >= from && entity.birthdate <= to
         )
         .subscribe((val) => {
           if (val.length > 0) {

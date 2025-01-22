@@ -8,14 +8,13 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { Observable, of } from 'rxjs';
-import { map, tap, shareReplay, catchError } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 
 import { DataService } from './data/services/data.service';
-import { updateDataStore } from './data/store/data.store';
-import { updateSettingsStore } from './data/store/chart.store';
+import { DataStore } from './data/store/data.store';
+import { SettingsStore } from './data/store/chart.store';
 import { defaultChartSettings } from './data/interfaces/chart.interface';
 import { Dialog, DIALOG_DATA, DialogModule, } from '@angular/cdk/dialog';
-import { ChartData } from './data/interfaces/data.interface';
 
 @Component({
   selector: 'app-root',
@@ -39,15 +38,17 @@ export class AppComponent {
   title = 'Charts';
   private breakpointObserver = inject(BreakpointObserver);
   dataService = inject(DataService);
+  dataStore = inject(DataStore);
+  settingsStore = inject(SettingsStore);
   activeLink: any = '';
   responseError: string = '';
   dialog = inject(Dialog);
 
   constructor() {
-    updateSettingsStore(defaultChartSettings);
+    this.settingsStore.updateStore(defaultChartSettings);
     this.dataService.getChartData()
     .subscribe({
-      next: ((val) => updateDataStore(val)),
+      next: ((val) => this.dataStore.updateDataStore(val)),
       error: ((err) => this.openDialog(err))
     });
   }

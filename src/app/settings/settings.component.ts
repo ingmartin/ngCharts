@@ -1,11 +1,10 @@
 import * as _ from 'lodash';
 import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorPalette } from './../data/interfaces/chart.interface';
-import { selectAllEntities } from '@ngneat/elf-entities';
 import { Component, inject } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
-import { deleteSettingItem, settingsStore, upsertSettingItem } from '../data/store/chart.store';
+import { SettingsStore } from '../data/store/chart.store';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,6 +40,7 @@ export class SettingsComponent {
   settings: ChartSettings[] = [];
   defaultCountBy = DefaultCountBy;
   dialog = inject(Dialog);
+  settingsStore = inject(SettingsStore);
 
   constructor() {
     redraw.next(true);
@@ -52,8 +52,7 @@ export class SettingsComponent {
 
   getSettings(): void {
     if (settingsLastUpdated < this.settingsUpdated) {
-      settingsStore
-        .pipe<ChartSettings[] | []>(selectAllEntities())
+      this.settingsStore.getAllStoreData()
         .subscribe((val) => {
           settings = val;
         });
@@ -94,7 +93,7 @@ export class SettingsComponent {
 
   checker = this.checkToRedraw().subscribe(res => {
     if (res) {
-      settingsStore.subscribe((state) => {
+      this.settingsStore.store.subscribe((state) => {
         this.settingsUpdated = state.updated;
         this.getSettings();
         this.settings = settings;
@@ -139,6 +138,7 @@ export class FormComponent {
   minAxesNumber: number = this.data.type ==='pie' ? 1 : 2;
   dialog = inject(Dialog);
   colorPalette = ColorPalette;
+  settingsStore = inject(SettingsStore);
 
   setAxesLength(value: string): void {
     this.minAxesNumber = value === 'pie' ? 1 : 2;
@@ -203,7 +203,7 @@ export class FormComponent {
         tall: this.form.value.tall ? this.form.value.tall : null,
         colors: this.form.value.colors ? this.form.value.colors : null,
       }
-      redraw.next(upsertSettingItem(this.data.id, data))
+      redraw.next(this.settingsStore.upsertItem(this.data.id, data));
       this.dialogRef.close();
     }
   }
@@ -221,9 +221,10 @@ export class FormComponent {
 export class ConfirmComponent {
   data = inject(DIALOG_DATA);
   dialogRef = inject(DialogRef);
+  settingsStore = inject(SettingsStore);
 
   onAgree(): void {
-    redraw.next(deleteSettingItem(this.data.id));
+    redraw.next(this.settingsStore.deleteItem(this.data.id));
     this.dialogRef.close();
   }
 }
