@@ -34,6 +34,7 @@ export abstract class abStore<T extends abInterface> {
   }
 
   updateStore(data: T[]): boolean {
+    data = this.beforeUpload(data);
     this.store.update(setEntities(data));
     this.updated += 1;
     this.store.update((state) => ({
@@ -42,6 +43,8 @@ export abstract class abStore<T extends abInterface> {
     }));
     return true;
   }
+
+  abstract beforeUpload(data: T[]): T[];
 
   deleteItem(id: number): boolean {
     this.store.update(deleteEntities(id));

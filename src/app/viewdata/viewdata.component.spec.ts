@@ -3,7 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ViewDataComponent } from './viewdata.component';
 
-describe('ViewerComponent', () => {
+describe('ViewDataComponent', () => {
   let component: ViewDataComponent;
   let fixture: ComponentFixture<ViewDataComponent>;
 

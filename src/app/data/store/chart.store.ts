@@ -7,4 +7,8 @@ export class SettingsStore extends abStore<ChartSettings>{
   constructor() {
     super('settingsStore');
   }
+
+  override beforeUpload(data: ChartSettings[]): ChartSettings[] {
+    return data
+  }
 }

@@ -9,13 +9,13 @@ export class DataStore extends abStore<ChartData>{
     super('dataStore');
   }
 
-  updateDataStore(data: ChartData[]): boolean {
+  beforeUpload(data: ChartData[]): ChartData[] {
     data = data.map((val) => {
       val.birthdate = new Date(val.birthdate);
       val.all = 'all';
       return val;
     });
-    return this.updateStore(data)
+    return data
   }
 
   selectManyByPredicate(predicate: any) {

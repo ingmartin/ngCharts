@@ -48,7 +48,7 @@ export class AppComponent {
     this.settingsStore.updateStore(defaultChartSettings);
     this.dataService.getChartData()
     .subscribe({
-      next: ((val) => this.dataStore.updateDataStore(val)),
+      next: ((val) => this.dataStore.updateStore(val)),
       error: ((err) => this.openDialog(err))
     });
   }
