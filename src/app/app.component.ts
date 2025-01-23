@@ -49,11 +49,11 @@ export class AppComponent {
     this.dataService.getChartData()
     .subscribe({
       next: ((val) => this.dataStore.updateStore(val)),
-      error: ((err) => this.openDialog(err))
+      error: ((err) => this.openErrorDialog(err))
     });
   }
 
-  openDialog(err: Error) {
+  openErrorDialog(err: Error): void {
     this.dialog.open(ErrorComponent, {
       data: {
         h1: 'Connection Error',

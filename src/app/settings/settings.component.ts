@@ -51,6 +51,7 @@ export class SettingsComponent {
   }
 
   getSettings(): void {
+    this.settingsUpdated = this.settingsStore.getUpdated();
     if (settingsLastUpdated < this.settingsUpdated) {
       this.settingsStore.getAllStoreData()
         .subscribe((val) => {
@@ -59,6 +60,7 @@ export class SettingsComponent {
       settingsLastUpdated = this.settingsUpdated;
       redraw.next(false);
     }
+    this.settings = settings;
   }
 
   openDialog(item?: ChartSettings): void {
@@ -93,10 +95,8 @@ export class SettingsComponent {
 
   checker = this.checkToRedraw().subscribe(res => {
     if (res) {
-      this.settingsStore.store.subscribe((state) => {
-        this.settingsUpdated = state.updated;
-        this.getSettings();
-        this.settings = settings;
+      this.settingsStore.store.subscribe({
+        next: () => this.getSettings()
       });
     }
   });
