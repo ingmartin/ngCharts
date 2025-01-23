@@ -3,17 +3,19 @@
 }
 
 mat-grid-tile {
-  background: var(--fbc-gray-20);
+  background: var(--mat-sys-primary-container);
   border-radius: 5px;
-  &:hover {
-    background: var(--mat-sys-outline-variant);
-  }
+}
+
+mat-grid-tile:hover {
+  background: var(--mat-sys-outline-variant);
 }
 
 .card .mat-h3 {
   cursor: pointer;
   color: var(--fbc-blue-60);
-  &:hover {
+}
+
+.card .mat-h3:hover {
     color: var(--mat-sys-on-primary-fixed-variant);
-  }
 }
