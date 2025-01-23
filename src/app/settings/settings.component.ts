@@ -43,7 +43,9 @@ export class SettingsComponent {
   settingsStore = inject(SettingsStore);
 
   constructor() {
-    redraw.next(true);
+    this.settingsStore.store.subscribe({
+      next: () => redraw.next(true)
+    })
   }
 
   checkToRedraw(): Observable<boolean> {
@@ -54,8 +56,8 @@ export class SettingsComponent {
     this.settingsUpdated = this.settingsStore.getUpdated();
     if (settingsLastUpdated < this.settingsUpdated) {
       this.settingsStore.getAllStoreData()
-        .subscribe((val) => {
-          settings = val;
+        .subscribe({
+          next: (val) => settings = val
         });
       settingsLastUpdated = this.settingsUpdated;
       redraw.next(false);
@@ -93,11 +95,9 @@ export class SettingsComponent {
     })
   );
 
-  checker = this.checkToRedraw().subscribe(res => {
-    if (res) {
-      this.settingsStore.store.subscribe({
-        next: () => this.getSettings()
-      });
+  checker = this.checkToRedraw().subscribe({
+    next: (res) => {
+      if (res) { this.getSettings() }
     }
   });
 }
