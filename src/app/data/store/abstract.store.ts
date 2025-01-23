@@ -6,6 +6,7 @@ import {
   selectAllEntities,
   upsertEntities,
 } from '@ngneat/elf-entities';
+import { Observable } from 'rxjs';
 
 export interface abInterface {
   id: number;
@@ -29,8 +30,8 @@ export abstract class abStore<T extends abInterface> {
     return this.updated;
   }
 
-  getAllStoreData() {
-    return this.store.pipe<T[] | []>(selectAllEntities());
+  getAllStoreData(): Observable<T[]> {
+    return this.store.pipe<T[]>(selectAllEntities());
   }
 
   updateStore(data: T[]): boolean {
