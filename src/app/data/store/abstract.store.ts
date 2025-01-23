@@ -35,40 +35,58 @@ export abstract class abStore<T extends abInterface> {
   }
 
   updateStore(data: T[]): boolean {
-    data = this.beforeUpload(data);
-    this.store.update(setEntities(data));
-    this.updated += 1;
-    this.store.update((state) => ({
-      ...state,
-      updated: this.updated,
-    }));
-    return true;
+    let result = true;
+    try {
+      data = this.beforeUpload(data);
+      this.store.update(setEntities(data));
+      this.updated += 1;
+      this.store.update((state) => ({
+        ...state,
+        updated: this.updated,
+      }));
+    } catch (error) {
+      console.log(error);
+      result = false;
+    }
+    return result;
   }
 
   abstract beforeUpload(data: T[]): T[];
 
   deleteItem(id: number): boolean {
-    this.store.update(deleteEntities(id));
-    this.updated += 1;
-    this.store.update((state) => ({
-      ...state,
-      updated: this.updated,
-    }));
-    return true;
+    let result = true;
+    try {
+      this.store.update(deleteEntities(id));
+      this.updated += 1;
+      this.store.update((state) => ({
+        ...state,
+        updated: this.updated,
+      }));
+    } catch (error) {
+      console.log(error);
+      result = false;
+    }
+    return result;
   }
 
   upsertItem(id: number, data: T): boolean {
-    data['id'] = id === 0 ? this.getMaxId() + 1 : id;
-    this.store.update(upsertEntities({ ...data }));
-    this.updated += 1;
-    this.store.update((state) => ({
-      ...state,
-      updated: this.updated,
-    }));
-    return true;
+    let result = true;
+    try {
+      data['id'] = id === 0 ? this.getMaxId() + 1 : id;
+      this.store.update(upsertEntities({ ...data }));
+      this.updated += 1;
+      this.store.update((state) => ({
+        ...state,
+        updated: this.updated,
+      }));
+    } catch (error) {
+      console.log(error);
+      result = false;
+    }
+    return result;
   }
 
-  private getMaxId(): number {
+  getMaxId(): number {
     let max: number = 0;
     this.store.subscribe((state) => {
       this.getAllStoreData().subscribe((val) => {
