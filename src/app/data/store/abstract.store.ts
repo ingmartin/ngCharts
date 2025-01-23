@@ -71,14 +71,10 @@ export abstract class abStore<T extends abInterface> {
   private getMaxId(): number {
     let max: number = 0;
     this.store.subscribe((state) => {
-      this.store.pipe<T[] | []>(selectAllEntities()).subscribe((val) => {
-        if (val.length > 0) {
-          val.filter((v) => {
-            if (v.id > max) {
-              max = v.id;
-            }
-          });
-        }
+      this.getAllStoreData().subscribe((val) => {
+        val.filter((v) => {
+          if (v.id > max) { max = v.id; }
+        });
       });
     });
     return max;
