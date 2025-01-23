@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { SettingsStore } from './chart.store';
-import { ChartSettings } from '../interfaces/chart.interface';
 
 describe('SettingsStore', () => {
   let service: SettingsStore;

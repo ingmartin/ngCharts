@@ -4,6 +4,7 @@ import {
   withEntities,
   deleteEntities,
   selectAllEntities,
+  selectManyByPredicate,
   upsertEntities,
 } from '@ngneat/elf-entities';
 import { Observable } from 'rxjs';
@@ -84,6 +85,11 @@ export abstract class abStore<T extends abInterface> {
       result = false;
     }
     return result;
+  }
+
+  selectManyByPredicate(predicate: any) {
+    return this.store
+          .pipe<T[] | []>(selectManyByPredicate(predicate));
   }
 
   getMaxId(): number {
