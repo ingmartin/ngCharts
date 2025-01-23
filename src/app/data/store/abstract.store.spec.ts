@@ -46,11 +46,17 @@ describe('abStore', () => {
     expect(service.getUpdated()).toBe(2);
   });
 
-  it('should upsert an item and increment updated count', () => {
-    const data: abInterface = { id: 1 };
-    const result = service.upsertItem(1, data);
-    expect(result).toBeTrue();
-    expect(service.getUpdated()).toBe(1);
+  it('upsert, should update an item, add new one and increment updated count', () => {
+    const data: abInterface[] = [{ id: 1 }];
+    service.updateStore(data);
+    const dataArray: abInterface[] = [{ id: 1 }, { id: 0 }];
+    const expectedUpdatedArray = [3, 2]
+    for (let data of dataArray) {
+      const expectedUpdated: number = parseInt(String(expectedUpdatedArray.pop()));
+      const result = service.upsertItem(1, data);
+      expect(result).toBeTrue();
+      expect(service.getUpdated()).toBe(expectedUpdated);
+    }
   });
 
   it('should get all store data', (done) => {
@@ -63,20 +69,21 @@ describe('abStore', () => {
     });
   });
 
-  it('should get max id', () => {
-    const data: abInterface[] = [{ id: 1 }, { id: 2 }];
+  it('should get next id for store entities', () => {
+    const data: abInterface[] = [{ id: 1 }, { id: 3 }];
     spyOn(service, 'getAllStoreData').and.returnValue(fakeAsyncResponse(data));
-    const maxId = service.getMaxId();
-    expect(maxId).toBe(2);
+    const maxId = service.getNextId();
+    expect(maxId).toBe(4);
   });
 
   it('should select many by predicate', (done) => {
     const data: abInterface[] = [{ id: 1 }, { id: 2 }];
     service.updateStore(data);
-    service.selectManyByPredicate((entity: abInterface) => entity.id > 1).subscribe((result) => {
-      expect(result.length).toBe(1);
-      expect(result[0].id).toBe(2);
-      done();
-    });
+    service.selectManyByPredicate((entity: abInterface) => entity.id > 1)
+      .subscribe((result) => {
+        expect(result.length).toBe(1);
+        expect(result[0].id).toBe(2);
+        done();
+      });
   });
 });

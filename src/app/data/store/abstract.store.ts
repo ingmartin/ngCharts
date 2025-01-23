@@ -73,7 +73,7 @@ export abstract class abStore<T extends abInterface> {
   upsertItem(id: number, data: T): boolean {
     let result = true;
     try {
-      data['id'] = id === 0 ? this.getMaxId() + 1 : id;
+      data['id'] = id === 0 ? this.getNextId() : id;
       this.store.update(upsertEntities({ ...data }));
       this.updated += 1;
       this.store.update((state) => ({
@@ -92,15 +92,15 @@ export abstract class abStore<T extends abInterface> {
           .pipe<T[] | []>(selectManyByPredicate(predicate));
   }
 
-  getMaxId(): number {
-    let max: number = 0;
+  getNextId(): number {
+    let nextId: number = 0;
     this.store.subscribe((state) => {
       this.getAllStoreData().subscribe((val) => {
         val.filter((v) => {
-          if (v.id > max) { max = v.id; }
+          if (v.id > nextId) { nextId = v.id + 1; }
         });
       });
     });
-    return max;
+    return nextId;
   }
 }
