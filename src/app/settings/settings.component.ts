@@ -15,7 +15,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NamesOfFields } from '../data/interfaces/data.interface';
-import { BehaviorSubject, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-settings',
@@ -33,20 +32,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class SettingsComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private settingsUpdated: number = 0;
-  static redraw = new BehaviorSubject<boolean>(true);
   settings: ChartSettings[] = [];
   defaultCountBy = DefaultCountBy;
   dialog = inject(Dialog);
   settingsStore = inject(SettingsStore);
 
   constructor() {
-    if (SettingsComponent.redraw.value === false) {
-      SettingsComponent.redraw.next(true);
-    }
-  }
-
-  checkToRedraw(): Observable<boolean> {
-    return SettingsComponent.redraw.asObservable();
+    this.settingsStore.store.subscribe((state) => {
+      this.getSettings();
+    });
   }
 
   getSettings(): void {
@@ -55,9 +49,6 @@ export class SettingsComponent {
       this.settingsStore.getAllStoreData()
         .subscribe((val) => this.settings = val);
       this.settingsUpdated = storeUpdated;
-      if (SettingsComponent.redraw.value) {
-        SettingsComponent.redraw.next(false);
-      }
     }
   }
 
@@ -90,12 +81,6 @@ export class SettingsComponent {
       return 0;
     })
   );
-
-  checker = this.checkToRedraw().subscribe({
-    next: (res) => {
-      if (res) { this.getSettings() }
-    }
-  });
 }
 
 @Component({
@@ -200,10 +185,9 @@ export class FormComponent {
         colors: this.form.value.colors ? this.form.value.colors : null,
       }
       let result: boolean = this.settingsStore.upsertItem(this.data.id, data);
-      if (SettingsComponent.redraw.value != result) {
-        SettingsComponent.redraw.next(result);
+      if (result) {
+        this.dialogRef.close();
       }
-      this.dialogRef.close();
     }
   }
 }
@@ -224,9 +208,8 @@ export class ConfirmComponent {
 
   onAgree(): void {
     let result: boolean = this.settingsStore.deleteItem(this.data.id);
-    if (SettingsComponent.redraw.value != result) {
-      SettingsComponent.redraw.next(result);
+    if (result) {
+      this.dialogRef.close();
     }
-    this.dialogRef.close();
   }
 }

@@ -56,18 +56,10 @@ describe('SettingsComponent', () => {
   });
 
   it('should get settings on initialization', () => {
-    // TODO: sometimes can catch error "Expected false to be true."
     fakeGetStore
       .and.returnValue(fakeAsyncResponse(mockData));
     component.getSettings();
     expect(component.settings.length).toBe(2);
     expect(component.settings[0].id).toBe(1);
-  });
-
-  it('should check to redraw', () => {
-    spyOn(component, 'getSettings').and.callFake(()=>(true));
-    component.checkToRedraw().subscribe(res => {
-      expect(res).toBeTrue();
-    });
   });
 });
