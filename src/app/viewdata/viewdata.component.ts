@@ -17,7 +17,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { SettingsStore } from '../data/store/chart.store';
-import { BehaviorSubject, Observable } from 'rxjs';
 
 let dataLastUpdated: number = 0;
 let data: ChartData[] = [];
@@ -61,7 +60,6 @@ export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private dataUpdated: number = 0;
   private settingsUpdated: number = 0;
-  private redraw = new BehaviorSubject<boolean>(false);
   start_date_signal = signal<Date | null>(null);
   finish_date_signal = signal<Date | null>(null);
   min_date_signal = signal<Date | null>(null);
@@ -78,14 +76,11 @@ export class ViewDataComponent {
     this.settingsStore.store.subscribe((state) => {
       this.getSettings();
       this.setTiles();
+      this.dataStore.store.subscribe((state) => {
+        this.getData();
+        this.setChartOptions();
+      })
     });
-    this.dataStore.store.subscribe((state) => {
-      this.getData();
-    })
-  }
-
-  checkToRedraw(): Observable<boolean> {
-    return this.redraw.asObservable();
   }
 
   getData(): void {
@@ -104,12 +99,10 @@ export class ViewDataComponent {
         this.setDates(min_date, max_date);
         begin_date = min_date;
         end_date = max_date;
-        this.redraw.next(true);
       });
       dataLastUpdated = this.dataUpdated;
     } else {
       this.setDates(begin_date, end_date);
-      this.redraw.next(true);
     }
   }
 
@@ -143,7 +136,7 @@ export class ViewDataComponent {
           if (val.length > 0) {
             data = val;
             filteredDates = [...new Set(data.map((item) => item.birthdate))];
-            this.redraw.next(true);
+            this.setChartOptions();
           }
         });
     }
@@ -174,30 +167,28 @@ export class ViewDataComponent {
     this.tileBoardMobile = [];
     this.tileBoardDesktop = [];
     let idx: number = 0;
-    if (this.tileBoardMobile.length === 0) {
-      let series: Highcharts.SeriesOptionsType[] = [];
-      for (let i = 0; i <= 20; ++i) {
-        series.push({ type: 'line', name: '', data: [] });
-      }
-      for (let tile of settings) {
-        let tileMobile: ChartTile = {
-          Highcharts: null,
-          options: {},
-          cols: 2,
-          rows: tile.tall ? 2 : 1,
-          type: 'mob',
-        };
-        this.tileBoardMobile[idx] = tileMobile;
-        let tileDesktop: ChartTile = {
-          Highcharts: null,
-          options: {},
-          cols: tile.wide ? 2 : 1,
-          rows: tile.tall ? 2 : 1,
-          type: 'desk',
-        };
-        this.tileBoardDesktop[idx] = tileDesktop;
-        ++idx;
-      }
+    let series: Highcharts.SeriesOptionsType[] = [];
+    for (let i = 0; i <= 20; ++i) {
+      series.push({ type: 'line', name: '', data: [] });
+    }
+    for (let tile of settings) {
+      let tileMobile: ChartTile = {
+        Highcharts: null,
+        options: {},
+        cols: 2,
+        rows: tile.tall ? 2 : 1,
+        type: 'mob',
+      };
+      this.tileBoardMobile[idx] = tileMobile;
+      let tileDesktop: ChartTile = {
+        Highcharts: null,
+        options: {},
+        cols: tile.wide ? 2 : 1,
+        rows: tile.tall ? 2 : 1,
+        type: 'desk',
+      };
+      this.tileBoardDesktop[idx] = tileDesktop;
+      ++idx;
     }
   }
 
@@ -309,7 +300,6 @@ export class ViewDataComponent {
       };
       ++idx;
     }
-    this.redraw.next(false);
   }
 
   getCountByFunctions(countby: CountByType): object[] {
@@ -372,10 +362,4 @@ export class ViewDataComponent {
       return this.tileBoardDesktop;
     })
   );
-
-  checker = this.checkToRedraw().subscribe((res) => {
-    if (res === true && dates.length > 0) {
-      this.setChartOptions();
-    }
-  });
 }
