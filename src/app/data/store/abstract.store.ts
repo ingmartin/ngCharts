@@ -73,7 +73,7 @@ export abstract class abStore<T extends abInterface> {
   upsertItem(id: number, data: T): boolean {
     let result = true;
     try {
-      data['id'] = id === 0 ? this.getNextId() : id;
+      data['id'] = id || this.getNextId();
       this.store.update(upsertEntities({ ...data }));
       this.updated += 1;
       this.store.update((state) => ({

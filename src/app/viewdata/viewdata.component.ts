@@ -19,17 +19,16 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { SettingsStore } from '../data/store/chart.store';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-let dataLastUpdated: number = 0,
-  data: ChartData[] = [],
-  settings: ChartSettings[] = [],
-  settingsLastUpdated: number = 0,
-  dates: Date[] = [],
-  filteredDates: Date[] = [],
-  min_date: Date | null = null,
-  max_date: Date | null = null,
-  begin_date: Date | null = null,
-  end_date: Date | null = null,
-  redraw = new BehaviorSubject<boolean>(false);
+let dataLastUpdated: number = 0;
+let data: ChartData[] = [];
+let settings: ChartSettings[] = [];
+let settingsLastUpdated: number = 0;
+let dates: Date[] = [];
+let filteredDates: Date[] = [];
+let min_date: Date | null = null;
+let max_date: Date | null = null;
+let begin_date: Date | null = null;
+let end_date: Date | null = null;
 
 interface ChartTile {
   Highcharts: null | typeof Highcharts;
@@ -62,6 +61,7 @@ export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private dataUpdated: number = 0;
   private settingsUpdated: number = 0;
+  private redraw = new BehaviorSubject<boolean>(false);
   start_date_signal = signal<Date | null>(null);
   finish_date_signal = signal<Date | null>(null);
   min_date_signal = signal<Date | null>(null);
@@ -85,7 +85,7 @@ export class ViewDataComponent {
   }
 
   checkToRedraw(): Observable<boolean> {
-    return redraw.asObservable();
+    return this.redraw.asObservable();
   }
 
   getData(): void {
@@ -104,12 +104,12 @@ export class ViewDataComponent {
         this.setDates(min_date, max_date);
         begin_date = min_date;
         end_date = max_date;
-        redraw.next(true);
+        this.redraw.next(true);
       });
       dataLastUpdated = this.dataUpdated;
     } else {
       this.setDates(begin_date, end_date);
-      redraw.next(true);
+      this.redraw.next(true);
     }
   }
 
@@ -143,7 +143,7 @@ export class ViewDataComponent {
           if (val.length > 0) {
             data = val;
             filteredDates = [...new Set(data.map((item) => item.birthdate))];
-            redraw.next(true);
+            this.redraw.next(true);
           }
         });
     }
@@ -309,7 +309,7 @@ export class ViewDataComponent {
       };
       ++idx;
     }
-    redraw.next(false);
+    this.redraw.next(false);
   }
 
   getCountByFunctions(countby: CountByType): object[] {

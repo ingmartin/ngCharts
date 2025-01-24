@@ -72,8 +72,8 @@ describe('abStore', () => {
   it('should get next id for store entities', () => {
     const data: abInterface[] = [{ id: 1 }, { id: 3 }];
     spyOn(service, 'getAllStoreData').and.returnValue(fakeAsyncResponse(data));
-    const maxId = service.getNextId();
-    expect(maxId).toBe(4);
+    const nextId = service.getNextId();
+    expect(nextId).toBe(4);
   });
 
   it('should select many by predicate', (done) => {

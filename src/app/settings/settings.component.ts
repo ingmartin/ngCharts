@@ -17,10 +17,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NamesOfFields } from '../data/interfaces/data.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-let settings: ChartSettings[] = [],
-  settingsLastUpdated: number = 0,
-  redraw = new BehaviorSubject<boolean>(true);
-
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -37,32 +33,32 @@ let settings: ChartSettings[] = [],
 export class SettingsComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private settingsUpdated: number = 0;
+  static redraw = new BehaviorSubject<boolean>(true);
   settings: ChartSettings[] = [];
   defaultCountBy = DefaultCountBy;
   dialog = inject(Dialog);
   settingsStore = inject(SettingsStore);
 
   constructor() {
-    this.settingsStore.store.subscribe({
-      next: () => redraw.next(true)
-    })
+    if (SettingsComponent.redraw.value === false) {
+      SettingsComponent.redraw.next(true);
+    }
   }
 
   checkToRedraw(): Observable<boolean> {
-    return redraw.asObservable();
+    return SettingsComponent.redraw.asObservable();
   }
 
   getSettings(): void {
-    this.settingsUpdated = this.settingsStore.getUpdated();
-    if (settingsLastUpdated < this.settingsUpdated) {
+    let storeUpdated: number = this.settingsStore.getUpdated();
+    if (this.settingsUpdated < storeUpdated) {
       this.settingsStore.getAllStoreData()
-        .subscribe({
-          next: (val) => settings = val
-        });
-      settingsLastUpdated = this.settingsUpdated;
-      redraw.next(false);
+        .subscribe((val) => this.settings = val);
+      this.settingsUpdated = storeUpdated;
+      if (SettingsComponent.redraw.value) {
+        SettingsComponent.redraw.next(false);
+      }
     }
-    this.settings = settings;
   }
 
   openDialog(item?: ChartSettings): void {
@@ -203,7 +199,10 @@ export class FormComponent {
         tall: this.form.value.tall ? this.form.value.tall : null,
         colors: this.form.value.colors ? this.form.value.colors : null,
       }
-      redraw.next(this.settingsStore.upsertItem(this.data.id, data));
+      let result: boolean = this.settingsStore.upsertItem(this.data.id, data);
+      if (SettingsComponent.redraw.value != result) {
+        SettingsComponent.redraw.next(result);
+      }
       this.dialogRef.close();
     }
   }
@@ -224,7 +223,10 @@ export class ConfirmComponent {
   settingsStore = inject(SettingsStore);
 
   onAgree(): void {
-    redraw.next(this.settingsStore.deleteItem(this.data.id));
+    let result: boolean = this.settingsStore.deleteItem(this.data.id);
+    if (SettingsComponent.redraw.value != result) {
+      SettingsComponent.redraw.next(result);
+    }
     this.dialogRef.close();
   }
 }
