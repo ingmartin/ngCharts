@@ -7,9 +7,9 @@
       <input
         matInput
         [matDatepicker]="picker_min"
-        [min]="min_date_signal()"
-        [max]="finish_date_signal()"
-        [value]="start_date_signal()"
+        [min]="dateSignalMin()"
+        [max]="dateSignalFinish()"
+        [value]="dateSignalStart()"
         (dateChange)="setStartDate($event)">
       <mat-hint>MM/DD/YYYY</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="picker_min"></mat-datepicker-toggle>
@@ -20,9 +20,9 @@
       <input
         matInput
         [matDatepicker]="picker_max"
-        [min]="start_date_signal()"
-        [max]="max_date_signal()"
-        [value]="finish_date_signal()"
+        [min]="dateSignalStart()"
+        [max]="dateSignalMax()"
+        [value]="dateSignalFinish()"
         (dateChange)="setFinishDate($event)">
       <mat-hint>MM/DD/YYYY</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="picker_max"></mat-datepicker-toggle>

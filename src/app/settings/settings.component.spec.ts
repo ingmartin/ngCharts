@@ -1,12 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormComponent, SettingsComponent } from './settings.component';
+import { SettingsComponent } from './settings.component';
 import { Observable, of } from 'rxjs';
 import { ChartSettings } from '../data/interfaces/chart.interface';
 import { SettingsStore } from '../data/store/chart.store';
-
-function fakeAsyncResponse<T>(data: T[]): Observable<T[]> {
-  return of(data);
-}
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
@@ -48,7 +44,8 @@ describe('SettingsComponent', () => {
         countby: 'decades',
       }
     ];
-    fakeGetStore = spyOn(settingsStore, 'getAllStoreData');
+    fakeGetStore = spyOn(settingsStore, 'getAllStoreData')
+      .and.callFake((): Observable<ChartSettings[]> => of(mockData));
   });
 
   it('should create', () => {
@@ -56,8 +53,6 @@ describe('SettingsComponent', () => {
   });
 
   it('should get settings on initialization', () => {
-    fakeGetStore
-      .and.returnValue(fakeAsyncResponse(mockData));
     component.getSettings();
     expect(component.settings.length).toBe(2);
     expect(component.settings[0].id).toBe(1);

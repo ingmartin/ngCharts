@@ -53,11 +53,11 @@ export class SettingsComponent {
   }
 
   openDialog(item?: ChartSettings): void {
-    let data = {};
+    let itemData = {};
     if (item) {
-      data = _.cloneDeep(item);
+      itemData = _.cloneDeep(item);
     } else {
-      data = {
+      itemData = {
         id: 0,
         title: '',
         subtitle: '',
@@ -70,7 +70,7 @@ export class SettingsComponent {
     this.dialog.open(FormComponent, {
       data: {
         h1: item?.id ? 'Change Chart' : 'Add Chart',
-        ...data,
+        ...itemData,
       },
     });
   }

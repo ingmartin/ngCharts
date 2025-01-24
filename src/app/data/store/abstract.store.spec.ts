@@ -8,10 +8,6 @@ class TestStore extends abStore<abInterface> {
   }
 }
 
-function fakeAsyncResponse<T>(data: T[]): Observable<T[]> {
-  return of(data);
-}
-
 describe('abStore', () => {
   let service: TestStore;
 
@@ -71,7 +67,8 @@ describe('abStore', () => {
 
   it('should get next id for store entities', () => {
     const data: abInterface[] = [{ id: 1 }, { id: 3 }];
-    spyOn(service, 'getAllStoreData').and.returnValue(fakeAsyncResponse(data));
+    spyOn(service, 'getAllStoreData')
+          .and.callFake((): Observable<abInterface[]> => of(data));
     const nextId = service.getNextId();
     expect(nextId).toBe(4);
   });

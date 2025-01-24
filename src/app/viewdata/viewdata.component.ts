@@ -24,10 +24,10 @@ let settings: ChartSettings[] = [];
 let settingsLastUpdated: number = 0;
 let dates: Date[] = [];
 let filteredDates: Date[] = [];
-let min_date: Date | null = null;
-let max_date: Date | null = null;
-let begin_date: Date | null = null;
-let end_date: Date | null = null;
+let minDateOfData: Date | null = null;
+let maxDateOfData: Date | null = null;
+let startDate: Date | null = null;
+let finishDate: Date | null = null;
 
 interface ChartTile {
   Highcharts: null | typeof Highcharts;
@@ -60,10 +60,10 @@ export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private dataUpdated: number = 0;
   private settingsUpdated: number = 0;
-  start_date_signal = signal<Date | null>(null);
-  finish_date_signal = signal<Date | null>(null);
-  min_date_signal = signal<Date | null>(null);
-  max_date_signal = signal<Date | null>(null);
+  dateSignalStart = signal<Date | null>(null);
+  dateSignalFinish = signal<Date | null>(null);
+  dateSignalMin = signal<Date | null>(null);
+  dateSignalMax = signal<Date | null>(null);
   tileBoardMobile: ChartTile[] = [];
   tileBoardDesktop: ChartTile[] = [];
   defaultCountBy = DefaultCountBy;
@@ -90,20 +90,27 @@ export class ViewDataComponent {
         data = val;
         dates = [...new Set(data.map((item) => item.birthdate))];
         filteredDates = dates;
-        min_date = dates.reduce(function (a, b) {
+        minDateOfData = dates.reduce(function (a, b) {
           return a < b ? a : b;
         });
-        max_date = dates.reduce(function (a, b) {
+        maxDateOfData = dates.reduce(function (a, b) {
           return a > b ? a : b;
         });
-        this.setDates(min_date, max_date);
-        begin_date = min_date;
-        end_date = max_date;
+        startDate = minDateOfData;
+        finishDate = maxDateOfData;
+        this.setDatesSignals();
       });
       dataLastUpdated = this.dataUpdated;
     } else {
-      this.setDates(begin_date, end_date);
+      this.setDatesSignals();
     }
+  }
+
+  setDatesSignals(): void {
+    this.dateSignalMin.set(minDateOfData);
+    this.dateSignalMax.set(maxDateOfData);
+    this.dateSignalStart.set(startDate);
+    this.dateSignalFinish.set(finishDate);
   }
 
   getSettings(): void {
@@ -118,16 +125,9 @@ export class ViewDataComponent {
     this.datepicker = Boolean(settings.length);
   }
 
-  setDates(start_date: Date | null, finish_date: Date | null): void {
-    this.min_date_signal.set(min_date);
-    this.max_date_signal.set(max_date);
-    this.start_date_signal.set(start_date);
-    this.finish_date_signal.set(finish_date);
-  }
-
   filterData(): void {
-    let from = this.start_date_signal();
-    let to = this.finish_date_signal();
+    let from = this.dateSignalStart();
+    let to = this.dateSignalFinish();
     if (from != null && to != null) {
       this.dataStore.selectManyByPredicate(
           (entity: any) => entity.birthdate >= from && entity.birthdate <= to
@@ -143,14 +143,14 @@ export class ViewDataComponent {
   }
 
   setStartDate(event: MatDatepickerInputEvent<Date>): void {
-    this.start_date_signal.set(event.value);
-    begin_date = event.value;
+    this.dateSignalStart.set(event.value);
+    startDate = event.value;
     this.filterData();
   }
 
   setFinishDate(event: MatDatepickerInputEvent<Date>): void {
-    this.finish_date_signal.set(event.value);
-    end_date = event.value;
+    this.dateSignalFinish.set(event.value);
+    finishDate = event.value;
     this.filterData();
   }
 

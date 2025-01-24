@@ -5,7 +5,6 @@ import { DataStore } from './data.store';
 describe('DataStore', () => {
   let service: DataStore;
   let mockData: ChartData[];
-  let falseData: any[];
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
