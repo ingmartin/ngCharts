@@ -60,23 +60,23 @@ export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private dataUpdated: number = 0;
   private settingsUpdated: number = 0;
+  private countByFilter: string[] = ['days', 'months', 'years'];
+  private tileBoardMobile: ChartTile[] = [];
+  private tileBoardDesktop: ChartTile[] = [];
+  private dataStore = inject(DataStore);
+  private settingsStore = inject(SettingsStore);
   dateSignalStart = signal<Date | null>(null);
   dateSignalFinish = signal<Date | null>(null);
   dateSignalMin = signal<Date | null>(null);
   dateSignalMax = signal<Date | null>(null);
-  tileBoardMobile: ChartTile[] = [];
-  tileBoardDesktop: ChartTile[] = [];
-  defaultCountBy = DefaultCountBy;
-  private countByFilter: string[] = ['days', 'months', 'years'];
-  datepicker = false;
-  dataStore = inject(DataStore);
-  settingsStore = inject(SettingsStore);
+  defaultCountBy: CountByType = DefaultCountBy;
+  datepicker: boolean = false;
 
   constructor() {
-    this.settingsStore.store.subscribe((state) => {
+    this.settingsStore.store.subscribe(() => {
       this.getSettings();
       this.setTiles();
-      this.dataStore.store.subscribe((state) => {
+      this.dataStore.store.subscribe(() => {
         this.getData();
         this.setChartOptions();
       })

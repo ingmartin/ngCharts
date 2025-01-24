@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorPalette } from './../data/interfaces/chart.interface';
+import { CountBy, ChartSettings, TypesOfChart, AxesNames, DefaultCountBy, ColorPalette, CountByType } from './../data/interfaces/chart.interface';
 import { Component, inject } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
@@ -32,13 +32,13 @@ import { NamesOfFields } from '../data/interfaces/data.interface';
 export class SettingsComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private settingsUpdated: number = 0;
+  private dialog = inject(Dialog);
+  private settingsStore = inject(SettingsStore);
   settings: ChartSettings[] = [];
-  defaultCountBy = DefaultCountBy;
-  dialog = inject(Dialog);
-  settingsStore = inject(SettingsStore);
+  defaultCountBy: CountByType = DefaultCountBy;
 
   constructor() {
-    this.settingsStore.store.subscribe((state) => {
+    this.settingsStore.store.subscribe(() => {
       this.getSettings();
     });
   }
