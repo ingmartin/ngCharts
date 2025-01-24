@@ -86,8 +86,8 @@ export class SettingsComponent {
 
   bp = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map(({ matches }) => {
-      if (matches) { return true; }
-      return false;
+      if (matches) { return 2; }
+      return 0;
     })
   );
 
