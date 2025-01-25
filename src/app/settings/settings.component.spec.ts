@@ -68,15 +68,6 @@ describe('FormComponent', () => {
   let settingsStore: SettingsStore;
   let dialog: jasmine.SpyObj<Dialog>;
   let dialogRef: DialogRef<FormComponent>;
-  let item: ChartSettings ={
-    id: 1,
-    title: 'Default Chart',
-    subtitle: 'Default Chart',
-    type: 'spline',
-    wide: true,
-    axes: ['birthdate', 'blood_group',],
-    countby: 'decades',
-  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -85,7 +76,7 @@ describe('FormComponent', () => {
         BrowserAnimationsModule
       ],
       providers: [
-        { provide: DIALOG_DATA, useValue: item },
+        { provide: DIALOG_DATA, useValue: {} },
         { provide: DialogRef, useValue: {} },
       ],
     })
