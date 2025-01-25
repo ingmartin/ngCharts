@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormComponent, SettingsComponent } from './settings.component';
+import { FormComponent, SettingsComponent, ConfirmComponent } from './settings.component';
 import { Observable, of } from 'rxjs';
 import { ChartSettings } from '../data/interfaces/chart.interface';
 import { SettingsStore } from '../data/store/chart.store';
-import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
+import { Dialog, DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('SettingsComponent', () => {
@@ -66,12 +66,26 @@ describe('FormComponent', () => {
   let component: FormComponent;
   let fixture: ComponentFixture<FormComponent>;
   let settingsStore: SettingsStore;
+  let dialog: jasmine.SpyObj<Dialog>;
+  let dialogRef: DialogRef<FormComponent>;
+  let item: ChartSettings ={
+    id: 1,
+    title: 'Default Chart',
+    subtitle: 'Default Chart',
+    type: 'spline',
+    wide: true,
+    axes: ['birthdate', 'blood_group',],
+    countby: 'decades',
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormComponent, BrowserAnimationsModule],
+      imports: [
+        FormComponent,
+        BrowserAnimationsModule
+      ],
       providers: [
-        { provide: DIALOG_DATA, useValue: {} },
+        { provide: DIALOG_DATA, useValue: item },
         { provide: DialogRef, useValue: {} },
       ],
     })
@@ -82,6 +96,10 @@ describe('FormComponent', () => {
     fixture.detectChanges();
 
     settingsStore = TestBed.inject(SettingsStore);
+    dialog = TestBed.inject(Dialog) as jasmine.SpyObj<Dialog>;
+    dialog.open = jasmine.createSpy();
+    dialogRef = TestBed.inject(DialogRef);
+    dialogRef.close = jasmine.createSpy();
   });
 
   it('should create', () => {
@@ -127,5 +145,49 @@ describe('FormComponent', () => {
     expect(component.checkDisabled(0, 'birthdate')).toBe(false);
   });
 
-  
+  it('should close current dialog and open new if try to remove item', ()=>{
+    component.form.value.remove = true;
+    component.onSubmit()
+    expect(dialogRef.close).toHaveBeenCalled();
+    expect(dialog.open).toHaveBeenCalled();
+  });
+});
+
+describe('ConfirmComponent', () => {
+  let component: ConfirmComponent;
+  let fixture: ComponentFixture<ConfirmComponent>;
+  let settingsStore: SettingsStore;
+  let dialogRef: DialogRef<ConfirmComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        FormComponent,
+        BrowserAnimationsModule
+      ],
+      providers: [
+        { provide: DIALOG_DATA, useValue: {} },
+        { provide: DialogRef, useValue: {} },
+      ],
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(ConfirmComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    settingsStore = TestBed.inject(SettingsStore);
+    dialogRef = TestBed.inject(DialogRef);
+    dialogRef.close = jasmine.createSpy();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should close dialog after successful delete item', ()=>{
+    spyOn(settingsStore, 'deleteItem').and.returnValue(true);
+    component.onAgree();
+    expect(dialogRef.close).toHaveBeenCalled();
+  })
 });
