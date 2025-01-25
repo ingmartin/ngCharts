@@ -18,11 +18,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { SettingsStore } from '../data/store/chart.store';
 
+let data: ChartData[];
 let dataLastUpdated: number = 0;
-let data: ChartData[] = [];
-let settings: ChartSettings[] = [];
+let settings: ChartSettings[];
 let settingsLastUpdated: number = 0;
-let dates: Date[] = [];
+
 let filteredDates: Date[] = [];
 let minDateOfData: Date | null = null;
 let maxDateOfData: Date | null = null;
@@ -83,36 +83,6 @@ export class ViewDataComponent {
     });
   }
 
-  getData(): void {
-    this.dataUpdated = this.dataStore.getUpdated();
-    if (dataLastUpdated < this.dataUpdated) {
-      this.dataStore.getAllStoreData().subscribe((val) => {
-        data = val;
-        dates = [...new Set(data.map((item) => item.birthdate))];
-        filteredDates = dates;
-        minDateOfData = dates.reduce(function (a, b) {
-          return a < b ? a : b;
-        });
-        maxDateOfData = dates.reduce(function (a, b) {
-          return a > b ? a : b;
-        });
-        startDate = minDateOfData;
-        finishDate = maxDateOfData;
-        this.setDatesSignals();
-      });
-      dataLastUpdated = this.dataUpdated;
-    } else {
-      this.setDatesSignals();
-    }
-  }
-
-  setDatesSignals(): void {
-    this.dateSignalMin.set(minDateOfData);
-    this.dateSignalMax.set(maxDateOfData);
-    this.dateSignalStart.set(startDate);
-    this.dateSignalFinish.set(finishDate);
-  }
-
   getSettings(): void {
     this.settingsUpdated = this.settingsStore.getUpdated();
     if (settingsLastUpdated < this.settingsUpdated) {
@@ -125,6 +95,24 @@ export class ViewDataComponent {
     this.datepicker = Boolean(settings.length);
   }
 
+  getData(): void {
+    this.dataUpdated = this.dataStore.getUpdated();
+    if (dataLastUpdated < this.dataUpdated) {
+      this.dataStore.getAllStoreData().subscribe((val) => {
+        data = val;
+        filteredDates = this.setFilteredDates(data);
+        minDateOfData = filteredDates[0];
+        maxDateOfData = filteredDates[filteredDates.length - 1];
+        startDate = minDateOfData;
+        finishDate = maxDateOfData;
+        this.setDatesSignals();
+      });
+      dataLastUpdated = this.dataUpdated;
+    } else {
+      this.setDatesSignals();
+    }
+  }
+
   filterData(): void {
     let from = this.dateSignalStart();
     let to = this.dateSignalFinish();
@@ -135,11 +123,25 @@ export class ViewDataComponent {
         .subscribe((val) => {
           if (val.length > 0) {
             data = val;
-            filteredDates = [...new Set(data.map((item) => item.birthdate))];
+            filteredDates = this.setFilteredDates(data);
             this.setChartOptions();
           }
         });
     }
+  }
+
+  setDatesSignals(): void {
+    this.dateSignalMin.set(minDateOfData);
+    this.dateSignalMax.set(maxDateOfData);
+    this.dateSignalStart.set(startDate);
+    this.dateSignalFinish.set(finishDate);
+  }
+
+  setFilteredDates(data: ChartData[]): Date[] {
+    let dates: Date[] = [];
+    dates = [...new Set(data.map((item) => item.birthdate))];
+    dates = dates.sort((a, b) => a.getTime() - b.getTime());
+    return dates
   }
 
   setStartDate(event: MatDatepickerInputEvent<Date>): void {
@@ -164,13 +166,12 @@ export class ViewDataComponent {
   }
 
   setTiles(): void {
+    if (settings === undefined) {
+      return
+    }
     this.tileBoardMobile = [];
     this.tileBoardDesktop = [];
     let idx: number = 0;
-    let series: Highcharts.SeriesOptionsType[] = [];
-    for (let i = 0; i <= 20; ++i) {
-      series.push({ type: 'line', name: '', data: [] });
-    }
     for (let tile of settings) {
       let tileMobile: ChartTile = {
         Highcharts: null,
@@ -193,6 +194,9 @@ export class ViewDataComponent {
   }
 
   setChartOptions(): void {
+    if (data === undefined) {
+      return
+    }
     let idx: number = 0;
     for (let tile of settings) {
       let axes: any = {};
@@ -336,9 +340,7 @@ export class ViewDataComponent {
     let axisValues: any[] = [];
 
     if (this.countByFilter.includes(countby)) {
-      axisValues = [
-        ...new Set(filteredDates.sort((a, b) => a.getTime() - b.getTime()).map(mapFunc)),
-      ];
+      axisValues = filteredDates.map(mapFunc);
     } else if (countby !== 'dynamic') {
       let diffYears: number =  countby === 'decades' ? 10 : 100;
       let position: number = filteredDates.reduce(function (a, b) { return a < b ? a : b; }).getFullYear();
