@@ -20,7 +20,6 @@ import { SettingsStore } from '../data/store/chart.store';
 
 let dataLastUpdated: number = 0;
 
-let filteredDates: Date[] = [];
 let minDateOfData: Date | null = null;
 let maxDateOfData: Date | null = null;
 let startDate: Date | null = null;
@@ -57,12 +56,12 @@ export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private dataUpdated: number = 0;
   private countByFilter: string[] = ['days', 'months', 'years'];
-  private tileBoardMobile: ChartTile[] = [];
-  private tileBoardDesktop: ChartTile[] = [];
   private dataStore = inject(DataStore);
   private settingsStore = inject(SettingsStore);
-  private settings: ChartSettings[] = [];
-  private data: ChartData[] = [];
+  settings: ChartSettings[] = [];
+  data: ChartData[] = [];
+  tileSetMobile: ChartTile[] = [];
+  tileSetDesktop: ChartTile[] = [];
   dateSignalStart = signal<Date | null>(null);
   dateSignalFinish = signal<Date | null>(null);
   dateSignalMin = signal<Date | null>(null);
@@ -95,7 +94,7 @@ export class ViewDataComponent {
     if (dataLastUpdated < this.dataUpdated) {
       this.dataStore.getAllStoreData().subscribe((val) => {
         this.data = val;
-        filteredDates = this.setFilteredDates(this.data);
+        let filteredDates: Date[] = this.setFilteredDates(this.data);
         minDateOfData = filteredDates[0];
         maxDateOfData = filteredDates[filteredDates.length - 1];
         startDate = minDateOfData;
@@ -118,7 +117,6 @@ export class ViewDataComponent {
         )
         .subscribe((val) => {
           this.data = val;
-          filteredDates = this.setFilteredDates(this.data);
           this.setChartOptions();
         });
     }
@@ -160,8 +158,8 @@ export class ViewDataComponent {
   }
 
   setTiles(): void {
-    this.tileBoardMobile = [];
-    this.tileBoardDesktop = [];
+    this.tileSetMobile = [];
+    this.tileSetDesktop = [];
     if (!this.settingsNotNull) {
       return
     }
@@ -175,7 +173,7 @@ export class ViewDataComponent {
         rows: tile.tall ? 2 : 1,
         type: 'mob',
       };
-      this.tileBoardMobile[idx] = tileMobile;
+      this.tileSetMobile[idx] = tileMobile;
       let tileDesktop: ChartTile = {
         Highcharts: null,
         options: {},
@@ -183,7 +181,7 @@ export class ViewDataComponent {
         rows: tile.tall ? 2 : 1,
         type: 'desk',
       };
-      this.tileBoardDesktop[idx] = tileDesktop;
+      this.tileSetDesktop[idx] = tileDesktop;
       ++idx;
     }
     this.redrawCharts = false;
@@ -191,13 +189,13 @@ export class ViewDataComponent {
 
   setChartOptions(): void {
     for (let idx in this.settings) {
-      this.tileBoardDesktop[idx] = {
-        ...this.tileBoardDesktop[idx],
+      this.tileSetDesktop[idx] = {
+        ...this.tileSetDesktop[idx],
         Highcharts: null,
         options: {},
       };
-      this.tileBoardMobile[idx] = {
-        ...this.tileBoardMobile[idx],
+      this.tileSetMobile[idx] = {
+        ...this.tileSetMobile[idx],
         Highcharts: null,
         options: {},
       };
@@ -205,7 +203,7 @@ export class ViewDataComponent {
     if (!Boolean(this.data.length)) {
       return
     }
-    setTimeout(()=>{
+    setTimeout(()=>{ // TODO: fix this point it works but isn't graceful
       let idx: number = 0;
       for (let tile of this.settings) {
         let axes: any = {};
@@ -245,6 +243,7 @@ export class ViewDataComponent {
           let pointFunc: any = (a:any, b:any)=>(a === b);
           let chartPoints: any;
           let comparedKey: NamesTypeOfChart = tile.axes[0];
+          let filteredDates: Date[] = this.setFilteredDates(this.data);
 
           if (comparedKey !== 'birthdate') {
             abscissaValues = [...new Set(this.data.map((item) => item[comparedKey]))];
@@ -252,7 +251,7 @@ export class ViewDataComponent {
           } else {
             let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
             [mapFunc, compareFunc] = this.getCountByFunctions(countby);
-            abscissaValues = this.getCountByDate(mapFunc, countby);
+            abscissaValues = this.getCountByDate(mapFunc, countby, filteredDates);
           }
 
           if (chartKey !== 'birthdate') {
@@ -260,7 +259,7 @@ export class ViewDataComponent {
           } else {
             let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
             [mapFunc, pointFunc] = this.getCountByFunctions(countby);
-            chartPoints = this.getCountByDate(mapFunc, countby);
+            chartPoints = this.getCountByDate(mapFunc, countby, filteredDates);
           }
 
           for (let point of chartPoints) {
@@ -301,13 +300,13 @@ export class ViewDataComponent {
           ...axes,
           series: series,
         };
-        this.tileBoardDesktop[idx] = {
-          ...this.tileBoardDesktop[idx],
+        this.tileSetDesktop[idx] = {
+          ...this.tileSetDesktop[idx],
           Highcharts: Highcharts,
           options: chartOptions,
         };
-        this.tileBoardMobile[idx] = {
-          ...this.tileBoardMobile[idx],
+        this.tileSetMobile[idx] = {
+          ...this.tileSetMobile[idx],
           Highcharts: Highcharts,
           options: chartOptions,
         };
@@ -322,7 +321,7 @@ export class ViewDataComponent {
     let compareFunc: any = (v:any)=>true;
 
     if (this.countByFilter.includes(countby)) {
-      parseFunc = String
+      parseFunc = String;
       if (countby === 'days') {
         mapFunc = (v: Date) => v.toISOString().split('T')[0];
       } else if (countby === 'months') {
@@ -346,7 +345,7 @@ export class ViewDataComponent {
     return [mapFunc, compareFunc]
   }
 
-  getCountByDate(mapFunc: any, countby: CountByType): any[] {
+  getCountByDate(mapFunc: any, countby: CountByType, filteredDates: Date[]): any[] {
     let axisValues: any[] = [];
 
     if (this.countByFilter.includes(countby)) {
@@ -369,9 +368,9 @@ export class ViewDataComponent {
   cards = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map(({ matches }) => {
       if (matches) {
-        return this.tileBoardMobile;
+        return this.tileSetMobile;
       }
-      return this.tileBoardDesktop;
+      return this.tileSetDesktop;
     })
   );
 }

@@ -5,6 +5,7 @@ import { SettingsStore } from '../data/store/chart.store';
 import { ChartSettings } from '../data/interfaces/chart.interface';
 import { DataStore } from '../data/store/data.store';
 import { ChartData } from '../data/interfaces/data.interface';
+import { Observable, of } from 'rxjs';
 
 describe('ViewDataComponent', () => {
   let component: ViewDataComponent;
@@ -30,7 +31,7 @@ describe('ViewDataComponent', () => {
         id: 5,
         all: '',
         name: 'Maximilian',
-        birthdate: new Date(),
+        birthdate: new Date('2022-12-31'),
         blood_group: 'A',
         sex: 'M',
         job: 'Engineer',
@@ -40,11 +41,21 @@ describe('ViewDataComponent', () => {
         id: 2,
         all: '',
         name: 'Katrina',
-        birthdate: new Date(),
+        birthdate: new Date('2023-05-10'),
         blood_group: 'B-',
         sex: 'F',
         job: 'Teacher',
         company: 'University',
+      },
+      {
+        id: 3,
+        all: '',
+        name: 'Maria',
+        birthdate: new Date('2021-02-28'),
+        blood_group: 'AB+',
+        sex: 'F',
+        job: 'Nurse',
+        company: 'Hospital',
       },
     ];
     fakeGetDataStore = spyOn(dataStore, 'getAllStoreData');
@@ -81,5 +92,205 @@ describe('ViewDataComponent', () => {
 
   it('should compile', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('get settings', () => {
+    fakeGetSettingsStore.and.callFake(
+      (): Observable<ChartSettings[]>=>of(mockSettings))
+    component.getSettings();
+    expect(component.settings.length).toBe(2);
+    expect(component.settings[0].id).toBe(1);
+  });
+
+  it('get data', () => {
+    fakeGetDataStore.and.callFake(
+      (): Observable<ChartData[]>=>of(mockData))
+    component.getData();
+    expect(component.data.length).toBe(3);
+    expect(component.data[0].id).toBe(5);
+    component.dateSignalStart.set(new Date('2021-01-01'));
+    component.dateSignalFinish.set(new Date('2021-12-31'));
+  });
+
+  it('filter data', () => {
+    spyOn(dataStore, 'selectManyByPredicate').and.callFake(
+      (): Observable<ChartData[]>=>of(mockData.slice(1, 2)));
+
+    component.dateSignalStart.set(new Date('2023-01-01'));
+    component.dateSignalFinish.set(new Date('2023-12-31'));
+    component.filterData();
+    expect(component.data.length).toBe(1);
+    expect(component.data[0].id).toBe(2);
+  });
+
+  it('set filtered dates', () => {
+    const filteredDates: Date[] = component.setFilteredDates(mockData);
+    expect(filteredDates.length).toBe(3);
+    const expectedDate: Date = new Date('2021-02-28');
+    expect(filteredDates[0]).toEqual(expectedDate);
+  });
+
+  it('capitalize', () => {
+    expect(component.Capitalize('sex')).toBe('Gender');
+    expect(component.Capitalize('birthdate')).toBe('Birth Date');
+    expect(component.Capitalize('blood_group')).toBe('Blood Group');
+    expect(component.Capitalize('job')).toBe('Job');
+  });
+
+  it('set tiles', () => {
+    fakeGetSettingsStore.and.callFake(
+      (): Observable<ChartSettings[]>=>of(mockSettings.slice(0,1)))
+    component.getSettings();
+    expect(component.settings.length).toBe(1);
+    component.setTiles();
+    expect(component.tileSetDesktop.length).toBe(1);
+    expect(component.tileSetMobile.length).toBe(1);
+  });
+
+  it('should not set tiles if settings are empty', () => {
+    component.setTiles();
+    expect(component.tileSetDesktop.length).toBe(0);
+    expect(component.tileSetMobile.length).toBe(0);
+  })
+
+  it('get count by functions for countby == days', () => {
+    const testDate = new Date('2022-06-12');
+    const expectedStrDate = '2022-06-12';
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions('days');
+    const parseFunc = String;
+    const expectedMapFunc = (v: Date) => v.toISOString().split('T')[0];
+    const expectedCompareFunc = (v1: any, v2: any) => (expectedMapFunc(v1) === parseFunc(v2));
+    expect(typeof mapFunc).toBe(typeof expectedMapFunc);
+    expect(mapFunc(testDate)).toBe(expectedStrDate);
+    expect(mapFunc(testDate)).toBe(expectedMapFunc(testDate));
+    expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(true);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
+  });
+
+  it('get count by functions for countby == month', () => {
+    const testDate = new Date('2022-06-12');
+    const expectedStrDate = '2022-06';
+    const parseFunc = String;
+    const expectedMapFunc = (v: Date) => (
+      v.toISOString().split('T')[0]
+      .split('-').slice(0, 2).join('-')
+    );
+    const expectedCompareFunc = (v1: any, v2: any) => (expectedMapFunc(v1) === parseFunc(v2));
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions('months');
+    expect(typeof mapFunc).toBe(typeof expectedMapFunc);
+    expect(mapFunc(testDate)).toBe(expectedStrDate);
+    expect(mapFunc(testDate)).toBe(expectedMapFunc(testDate));
+    expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(true);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
+  });
+
+  it('get count by functions for countby == years', () => {
+    const testDate = new Date('2022-06-12');
+    const expectedStrDate = 2022;
+    const parseFunc = parseInt;
+    const expectedMapFunc = (v: Date) => v.getFullYear();
+    const expectedCompareFunc = (v1: any, v2: any) => (expectedMapFunc(v1) === parseFunc(v2));
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions('years');
+    expect(typeof mapFunc).toBe(typeof expectedMapFunc);
+    expect(mapFunc(testDate)).toBe(expectedStrDate);
+    expect(mapFunc(testDate)).toBe(expectedMapFunc(testDate));
+    expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(true);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
+  });
+
+  it('get count by functions for countby == decades', () => {
+    const testDate = new Date('2022-06-12');
+    const expectedStrDate = 2020;
+    const diffYears = 10;
+    const parseFunc = (v: number) => new Date(String(v));
+    const expectedCompareFunc = (v1: any, v2: any) => (
+      v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
+    );
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions('decades');
+    expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(true);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
+  });
+
+  it('get count by functions for countby == centuries', () => {
+    const testDate = new Date('2022-06-12');
+    const expectedStrDate = 2000;
+    const diffYears = 100;
+    const parseFunc = (v: number) => new Date(String(v));
+    const expectedCompareFunc = (v1: any, v2: any) => (
+      v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
+    );
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions('centuries');
+    expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(true);
+    expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
+  });
+
+  it('get count by date for countby == days', () => {
+    const filteredDates: Date[] = component.setFilteredDates(mockData);
+    const countby = 'days';
+    const expectedDates = ['2021-02-28', '2022-12-31', '2023-05-10']
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions(countby);
+    const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
+    expect(axisValues).toEqual(expectedDates);
+  });
+
+  it('get count by date for countby == months', () => {
+    const filteredDates: Date[] = component.setFilteredDates(mockData);
+    const countby = 'months';
+    const expectedDates = ['2021-02', '2022-12', '2023-05']
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions(countby);
+    const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
+    expect(axisValues).toEqual(expectedDates);
+  });
+
+  it('get count by date for countby == years', () => {
+    const filteredDates: Date[] = component.setFilteredDates(mockData);
+    const countby = 'years';
+    const expectedDates = [2021, 2022, 2023]
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions(countby);
+    const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
+    expect(axisValues).toEqual(expectedDates);
+  });
+
+  it('get count by date for countby == decades', () => {
+    const filteredDates: Date[] = component.setFilteredDates(mockData);
+    const countby = 'decades';
+    const expectedDates = [2020]
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions(countby);
+    const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
+    expect(axisValues).toEqual(expectedDates);
+  });
+
+  it('get count by date for countby == caenturies', () => {
+    const filteredDates: Date[] = component.setFilteredDates(mockData);
+    const countby = 'centuries';
+    const expectedDates = [2000]
+    let mapFunc: any = ()=>{};
+    let compareFunc: any = ()=>{};
+    [mapFunc, compareFunc] = component.getCountByFunctions(countby);
+    const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
+    expect(axisValues).toEqual(expectedDates);
   });
 });
