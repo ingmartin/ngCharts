@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { DataService } from './data.service';
 import { HttpClient, HttpErrorResponse, provideHttpClient, } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController, } from '@angular/common/http/testing';

@@ -17,7 +17,6 @@ describe('SettingsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SettingsComponent],
-      providers: [],
     })
     .compileComponents();
 

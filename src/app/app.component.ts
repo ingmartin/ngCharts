@@ -41,7 +41,6 @@ export class AppComponent {
   dataStore = inject(DataStore);
   settingsStore = inject(SettingsStore);
   activeLink: any = '';
-  responseError: string = '';
   dialog = inject(Dialog);
 
   constructor() {
@@ -62,7 +61,6 @@ export class AppComponent {
         message: err.message,
       },
     });
-    this.responseError = err.message
   }
 
   isHandset$: Observable<boolean> = this.breakpointObserver

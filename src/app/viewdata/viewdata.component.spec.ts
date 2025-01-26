@@ -1,5 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ViewDataComponent } from './viewdata.component';
 import { SettingsStore } from '../data/store/chart.store';
 import { ChartSettings } from '../data/interfaces/chart.interface';
@@ -20,7 +19,6 @@ describe('ViewDataComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [ViewDataComponent],
-      providers: [],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ViewDataComponent);
