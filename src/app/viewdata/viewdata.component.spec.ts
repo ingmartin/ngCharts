@@ -315,7 +315,7 @@ describe('ViewDataComponent', () => {
     expect(component.tileSetDesktop[0].Highcharts).toBe(null);
     expect(component.tileSetMobile[0].Highcharts).toBe(null);
     component.filterData();
-    console.log(component.setChartOptions());
+    component.setChartOptions();
     jasmine.clock().tick(20);
     expect(component.tileSetDesktop[0].Highcharts).not.toBe(null);
     expect(component.tileSetMobile[0].Highcharts).not.toBe(null);

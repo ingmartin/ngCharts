@@ -67,6 +67,7 @@ describe('FormComponent', () => {
   let settingsStore: SettingsStore;
   let dialog: jasmine.SpyObj<Dialog>;
   let dialogRef: DialogRef<FormComponent>;
+  let mockData: any[];
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -84,6 +85,28 @@ describe('FormComponent', () => {
     fixture = TestBed.createComponent(FormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+
+    mockData = [
+      { // valid
+        title: 'Default Chart',
+        subtitle: 'Default Chart',
+        type: 'spline',
+        axes: ['birthdate', 'blood_group',],
+        countby: 'decades',
+        wide: true,
+        tall: null,
+        remove: null,
+        colors: null,
+      },
+      { // invalid
+        id: 2,
+        title: '',
+        subtitle: null,
+        type: 'column',
+        axes: ['birthdate',],
+        countby: 'dees',
+      }
+    ];
 
     settingsStore = TestBed.inject(SettingsStore);
     dialog = TestBed.inject(Dialog) as jasmine.SpyObj<Dialog>;
@@ -140,6 +163,36 @@ describe('FormComponent', () => {
     component.onSubmit()
     expect(dialogRef.close).toHaveBeenCalled();
     expect(dialog.open).toHaveBeenCalled();
+  });
+
+  it('should get true validation for form', ()=>{
+    component.data.id = 1;
+    component.form.patchValue(mockData[0])
+    expect(component.form.valid).toBe(true);
+  });
+
+  it('should not get true because data is invalid', ()=>{
+    component.data.id = 1;
+    component.form.patchValue(mockData[1])
+    expect(component.form.valid).not.toBe(true);
+  });
+
+  it('should send data for upsert and close current dialog', ()=>{
+    spyOn(settingsStore, 'upsertItem').and.returnValue(true)
+    component.data.id = 1;
+    component.form.patchValue(mockData[0])
+    component.onSubmit();
+    expect(dialogRef.close).toHaveBeenCalled();
+    expect(settingsStore.upsertItem).toHaveBeenCalled();
+  });
+
+  it('should change array of selected items', ()=>{
+    const expectedValue: string = 'job';
+    component.selects = ['birthdate', 'blood_group'];
+    expect(component.selects.length).toBe(2);
+    component.onChange(expectedValue, 0);
+    expect(component.selects.length).toBe(2);
+    expect(component.selects[0]).toBe(expectedValue);
   });
 });
 
