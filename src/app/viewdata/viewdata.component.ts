@@ -18,8 +18,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { SettingsStore } from '../data/store/chart.store';
 
-let dataLastUpdated: number = 0;
-
 let minDateOfData: Date | null = null;
 let maxDateOfData: Date | null = null;
 let startDate: Date | null = null;
@@ -54,7 +52,6 @@ interface ChartTile {
 })
 export class ViewDataComponent {
   private breakpointObserver = inject(BreakpointObserver);
-  private dataUpdated: number = 0;
   private countByFilter: string[] = ['days', 'months', 'years'];
   private dataStore = inject(DataStore);
   private settingsStore = inject(SettingsStore);
@@ -75,7 +72,9 @@ export class ViewDataComponent {
       this.getSettings();
       this.setTiles();
       this.dataStore.store.subscribe(() => {
-        this.getData();
+        this.initializeDates();
+        this.filterData();
+        this.initializeDates(this.data);
         this.setChartOptions();
       })
     });
@@ -89,25 +88,6 @@ export class ViewDataComponent {
     this.settingsNotNull = Boolean(this.settings.length);
   }
 
-  getData(): void {
-    this.dataUpdated = this.dataStore.getUpdated();
-    if (dataLastUpdated < this.dataUpdated) {
-      this.dataStore.getAllStoreData().subscribe((val) => {
-        this.data = val;
-        let filteredDates: Date[] = this.setFilteredDates(this.data);
-        minDateOfData = filteredDates[0];
-        maxDateOfData = filteredDates[filteredDates.length - 1];
-        startDate = minDateOfData;
-        finishDate = maxDateOfData;
-        this.setDatesSignals();
-      });
-      dataLastUpdated = this.dataUpdated;
-    } else {
-      this.setDatesSignals();
-      this.filterData();
-    }
-  }
-
   filterData(): void {
     let from = this.dateSignalStart();
     let to = this.dateSignalFinish();
@@ -119,10 +99,21 @@ export class ViewDataComponent {
           this.data = val;
           this.setChartOptions();
         });
+    } else {
+      this.dataStore.getAllStoreData().subscribe((val) => {
+        this.data = val;
+      });
     }
   }
 
-  setDatesSignals(): void {
+  initializeDates(data?: ChartData[]): void {
+    if (data !== undefined) {
+      let filteredDates: Date[] = this.setFilteredDates(data);
+      minDateOfData = minDateOfData || filteredDates[0];
+      maxDateOfData = maxDateOfData || filteredDates[filteredDates.length - 1];
+      startDate = startDate || minDateOfData;
+      finishDate = finishDate || maxDateOfData;
+    }
     this.dateSignalMin.set(minDateOfData);
     this.dateSignalMax.set(maxDateOfData);
     this.dateSignalStart.set(startDate);

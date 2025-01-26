@@ -14,18 +14,20 @@ describe('ViewDataComponent', () => {
   let dataStore: DataStore;
   let mockData: ChartData[];
   let mockSettings: ChartSettings[];
-  let fakeGetDataUpdated: jasmine.Spy;
   let fakeGetDataStore: jasmine.Spy;
-  let fakeGetSettingsUpdated: jasmine.Spy;
   let fakeGetSettingsStore: jasmine.Spy;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule]
+      imports: [ViewDataComponent],
+      providers: [],
     }).compileComponents();
 
+    fixture = TestBed.createComponent(ViewDataComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
     dataStore = TestBed.inject(DataStore);
-    fakeGetDataUpdated = spyOn(dataStore, 'getUpdated').and.returnValue(3);
     mockData = [
       {
         id: 5,
@@ -59,9 +61,11 @@ describe('ViewDataComponent', () => {
       },
     ];
     fakeGetDataStore = spyOn(dataStore, 'getAllStoreData');
+    fakeGetDataStore.and.callFake(
+      (): Observable<ChartData[]>=>of(mockData)
+    );
 
     settingsStore = TestBed.inject(SettingsStore);
-    fakeGetSettingsUpdated = spyOn(settingsStore, 'getUpdated').and.returnValue(2);
     mockSettings = [
       {
         id: 1,
@@ -82,12 +86,9 @@ describe('ViewDataComponent', () => {
       }
     ];
     fakeGetSettingsStore = spyOn(settingsStore, 'getAllStoreData');
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ViewDataComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    fakeGetSettingsStore.and.callFake(
+      (): Observable<ChartSettings[]>=>of(mockSettings)
+    );
   });
 
   it('should compile', () => {
@@ -95,27 +96,22 @@ describe('ViewDataComponent', () => {
   });
 
   it('get settings', () => {
-    fakeGetSettingsStore.and.callFake(
-      (): Observable<ChartSettings[]>=>of(mockSettings))
     component.getSettings();
     expect(component.settings.length).toBe(2);
     expect(component.settings[0].id).toBe(1);
   });
 
-  it('get data', () => {
-    fakeGetDataStore.and.callFake(
-      (): Observable<ChartData[]>=>of(mockData))
-    component.getData();
+  it('should get data if ', () => {
+    component.filterData();
     expect(component.data.length).toBe(3);
     expect(component.data[0].id).toBe(5);
-    component.dateSignalStart.set(new Date('2021-01-01'));
-    component.dateSignalFinish.set(new Date('2021-12-31'));
   });
 
   it('filter data', () => {
     spyOn(dataStore, 'selectManyByPredicate').and.callFake(
       (): Observable<ChartData[]>=>of(mockData.slice(1, 2)));
 
+    component.filterData();
     component.dateSignalStart.set(new Date('2023-01-01'));
     component.dateSignalFinish.set(new Date('2023-12-31'));
     component.filterData();
@@ -153,7 +149,7 @@ describe('ViewDataComponent', () => {
     expect(component.tileSetMobile.length).toBe(0);
   })
 
-  it('get count by functions for countby == days', () => {
+  it('should return functions for countby === days', () => {
     const testDate = new Date('2022-06-12');
     const expectedStrDate = '2022-06-12';
     let mapFunc: any = ()=>{};
@@ -170,7 +166,7 @@ describe('ViewDataComponent', () => {
     expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
   });
 
-  it('get count by functions for countby == month', () => {
+  it('should return functions for countby === month', () => {
     const testDate = new Date('2022-06-12');
     const expectedStrDate = '2022-06';
     const parseFunc = String;
@@ -190,7 +186,7 @@ describe('ViewDataComponent', () => {
     expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
   });
 
-  it('get count by functions for countby == years', () => {
+  it('should return functions for countby === years', () => {
     const testDate = new Date('2022-06-12');
     const expectedStrDate = 2022;
     const parseFunc = parseInt;
@@ -207,7 +203,7 @@ describe('ViewDataComponent', () => {
     expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
   });
 
-  it('get count by functions for countby == decades', () => {
+  it('should return functions for countby === decades', () => {
     const testDate = new Date('2022-06-12');
     const expectedStrDate = 2020;
     const diffYears = 10;
@@ -223,7 +219,7 @@ describe('ViewDataComponent', () => {
     expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
   });
 
-  it('get count by functions for countby == centuries', () => {
+  it('should return functions for countby === centuries', () => {
     const testDate = new Date('2022-06-12');
     const expectedStrDate = 2000;
     const diffYears = 100;
@@ -239,7 +235,7 @@ describe('ViewDataComponent', () => {
     expect(compareFunc(testDate, expectedStrDate)).toBe(expectedCompareFunc(testDate, expectedStrDate));
   });
 
-  it('get count by date for countby == days', () => {
+  it('get axis array of dates for countby === days', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'days';
     const expectedDates = ['2021-02-28', '2022-12-31', '2023-05-10']
@@ -250,7 +246,7 @@ describe('ViewDataComponent', () => {
     expect(axisValues).toEqual(expectedDates);
   });
 
-  it('get count by date for countby == months', () => {
+  it('get axis array of dates for countby === months', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'months';
     const expectedDates = ['2021-02', '2022-12', '2023-05']
@@ -261,7 +257,7 @@ describe('ViewDataComponent', () => {
     expect(axisValues).toEqual(expectedDates);
   });
 
-  it('get count by date for countby == years', () => {
+  it('get axis array of dates for countby === years', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'years';
     const expectedDates = [2021, 2022, 2023]
@@ -272,7 +268,7 @@ describe('ViewDataComponent', () => {
     expect(axisValues).toEqual(expectedDates);
   });
 
-  it('get count by date for countby == decades', () => {
+  it('get axis array of dates for countby === decades', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'decades';
     const expectedDates = [2020]
@@ -283,7 +279,7 @@ describe('ViewDataComponent', () => {
     expect(axisValues).toEqual(expectedDates);
   });
 
-  it('get count by date for countby == caenturies', () => {
+  it('get axis array of dates for countby === caenturies', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'centuries';
     const expectedDates = [2000]
@@ -292,5 +288,39 @@ describe('ViewDataComponent', () => {
     [mapFunc, compareFunc] = component.getCountByFunctions(countby);
     const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
     expect(axisValues).toEqual(expectedDates);
+  });
+
+  it ('should not set charts options if data array is empty', ()=>{
+    fakeGetSettingsStore.and.callFake(
+      (): Observable<ChartSettings[]>=>of(mockSettings.slice(0, 1)))
+    component.getSettings();
+    component.setTiles();
+    expect(component.tileSetDesktop.length).toBe(1);
+    expect(component.tileSetMobile.length).toBe(1);
+    expect(component.tileSetDesktop[0].Highcharts).toBe(null);
+    expect(component.tileSetMobile[0].Highcharts).toBe(null);
+    component.setChartOptions();
+    expect(component.tileSetDesktop[0].Highcharts).toBe(null);
+    expect(component.tileSetMobile[0].Highcharts).toBe(null);
+  });
+
+  it ('set charts options', ()=>{
+    jasmine.clock().install();
+    fakeGetSettingsStore.and.callFake(
+      (): Observable<ChartSettings[]>=>of(mockSettings.slice(0, 1)))
+    fakeGetDataStore.and.callFake(
+        (): Observable<ChartData[]>=>of(mockData))
+    component.getSettings();
+    component.setTiles();
+    expect(component.tileSetDesktop.length).toBe(1);
+    expect(component.tileSetMobile.length).toBe(1);
+    expect(component.tileSetDesktop[0].Highcharts).toBe(null);
+    expect(component.tileSetMobile[0].Highcharts).toBe(null);
+    component.filterData();
+    console.log(component.setChartOptions());
+    jasmine.clock().tick(20);
+    expect(component.tileSetDesktop[0].Highcharts).not.toBe(null);
+    expect(component.tileSetMobile[0].Highcharts).not.toBe(null);
+    jasmine.clock().uninstall()
   });
 });
