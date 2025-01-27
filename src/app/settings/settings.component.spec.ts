@@ -16,13 +16,17 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SettingsComponent],
+      imports: [
+        SettingsComponent,
+      ],
     })
     .compileComponents();
 
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+
+    component.dialog.open = jasmine.createSpy();
 
     settingsStore = TestBed.inject(SettingsStore);
     fakeGetUpdated = spyOn(settingsStore, 'getUpdated').and.returnValue(2);
@@ -57,6 +61,41 @@ describe('SettingsComponent', () => {
     component.getSettings();
     expect(component.settings.length).toBe(2);
     expect(component.settings[0].id).toBe(1);
+  });
+
+  it('should open form for creating new item', () => {
+    const expectedData: object = {data: {
+        h1: 'Add Chart',
+        id: 0,
+        title: '',
+        subtitle: '',
+        type: null,
+        countby: null,
+        colors: null,
+        axes: ['', ''],
+      }
+    }
+    component.openDialog();
+    expect(component.dialog.open).toHaveBeenCalled();
+    expect(component.dialog.open).toHaveBeenCalledWith(
+      FormComponent,
+      expectedData
+    );
+  });
+
+  it('should open form for editing existed item', () => {
+    const item: ChartSettings = mockData[0]
+    const expectedData: object = {data: {
+        h1: 'Change Chart',
+        ...item
+      }
+    }
+    component.openDialog(item);
+    expect(component.dialog.open).toHaveBeenCalled();
+    expect(component.dialog.open).toHaveBeenCalledWith(
+      FormComponent,
+      expectedData
+    );
   });
 });
 
@@ -159,10 +198,19 @@ describe('FormComponent', () => {
   });
 
   it('should close current dialog and open new if try to remove item', ()=>{
+    const expectedData: object = {
+      data: {
+        h1: 'Remove Chart',
+        id: 22,
+        text: 'Are you going to remove the chart "null"?'
+      }
+    };
     component.form.value.remove = true;
+    component.data.id = 22;
     component.onSubmit()
     expect(dialogRef.close).toHaveBeenCalled();
     expect(dialog.open).toHaveBeenCalled();
+    expect(dialog.open).toHaveBeenCalledWith(ConfirmComponent, expectedData)
   });
 
   it('should get true validation for form', ()=>{

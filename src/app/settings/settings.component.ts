@@ -32,8 +32,8 @@ import { NamesOfFields } from '../data/interfaces/data.interface';
 export class SettingsComponent {
   private breakpointObserver = inject(BreakpointObserver);
   private settingsUpdated: number = 0;
-  private dialog = inject(Dialog);
   private settingsStore = inject(SettingsStore);
+  dialog = inject(Dialog);
   settings: ChartSettings[] = [];
   defaultCountBy: CountByType = DefaultCountBy;
 
