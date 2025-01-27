@@ -331,7 +331,7 @@ export class ViewDataComponent {
       compareFunc = (v1: any, v2: any) => (
         v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
       );
-    } else {} // TODO: dynamic
+    } // else {} TODO: dynamic
 
     return [mapFunc, compareFunc]
   }
@@ -350,7 +350,7 @@ export class ViewDataComponent {
       for (position; position < lastPosition; position += diffYears){
         axisValues.push(position);
       }
-    } else {} // TODO: dynamic
+    } // else {}TODO: dynamic
 
     return axisValues
   }

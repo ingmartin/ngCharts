@@ -1,3 +1,4 @@
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ViewDataComponent } from './viewdata.component';
 import { SettingsStore } from '../data/store/chart.store';
@@ -319,6 +320,26 @@ describe('ViewDataComponent', () => {
     jasmine.clock().tick(20);
     expect(component.tileSetDesktop[0].Highcharts).not.toBe(null);
     expect(component.tileSetMobile[0].Highcharts).not.toBe(null);
+    expect(component.tileSetDesktop[0].options.colors).toBe(undefined);
+    jasmine.clock().uninstall()
+  });
+
+  it ('should set color palette for charts options', ()=>{
+    jasmine.clock().install();
+    const testedSettings: ChartSettings = mockSettings[0];
+    testedSettings.colors = 'darkgreen';
+    const expectedColorScheme: string[] = ['#154033', '#333E0B', '#0B341F', '#253B1E', '#222F1E'];
+    fakeGetSettingsStore.and.callFake(
+      (): Observable<ChartSettings[]>=>of([testedSettings]))
+    fakeGetDataStore.and.callFake(
+        (): Observable<ChartData[]>=>of(mockData))
+    component.getSettings();
+    component.setTiles();
+    component.filterData();
+    component.setChartOptions();
+    jasmine.clock().tick(20);
+    expect(component.tileSetDesktop[0].Highcharts).not.toBe(null);
+    expect(component.tileSetDesktop[0].options.colors).toEqual(expectedColorScheme);
     jasmine.clock().uninstall()
   });
 });
