@@ -1,4 +1,3 @@
-import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ViewDataComponent } from './viewdata.component';
 import { SettingsStore } from '../data/store/chart.store';
