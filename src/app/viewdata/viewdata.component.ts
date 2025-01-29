@@ -1,5 +1,5 @@
 import { ChartData, NamesTypeOfChart } from './../data/interfaces/data.interface';
-import { Axes, AxesNames, Axis, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
+import { Axes, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
 import { DataStore } from './../data/store/data.store';
 import { Component, inject, signal } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
@@ -17,11 +17,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { SettingsStore } from '../data/store/chart.store';
-
-let minDateOfData: Date | null = null;
-let maxDateOfData: Date | null = null;
-let startDate: Date | null = null;
-let finishDate: Date | null = null;
 
 interface ChartTile {
   Highcharts: null | typeof Highcharts;
@@ -51,6 +46,10 @@ interface ChartTile {
   ],
 })
 export class ViewDataComponent {
+  static minDateOfData: Date | null = null;
+  static maxDateOfData: Date | null = null;
+  static startDate: Date | null = null;
+  static finishDate: Date | null = null;
   private breakpointObserver = inject(BreakpointObserver);
   private countByFilter: string[] = ['days', 'months', 'years'];
   private dataStore = inject(DataStore);
@@ -109,15 +108,15 @@ export class ViewDataComponent {
   initializeDates(data?: ChartData[]): void {
     if (data !== undefined) {
       let filteredDates: Date[] = this.setFilteredDates(data);
-      minDateOfData = minDateOfData || filteredDates[0];
-      maxDateOfData = maxDateOfData || filteredDates[filteredDates.length - 1];
-      startDate = startDate || minDateOfData;
-      finishDate = finishDate || maxDateOfData;
+      ViewDataComponent.minDateOfData = ViewDataComponent.minDateOfData || filteredDates[0];
+      ViewDataComponent.maxDateOfData = ViewDataComponent.maxDateOfData || filteredDates[filteredDates.length - 1];
+      ViewDataComponent.startDate = ViewDataComponent.startDate || ViewDataComponent.minDateOfData;
+      ViewDataComponent.finishDate = ViewDataComponent.finishDate || ViewDataComponent.maxDateOfData;
     }
-    this.dateSignalMin.set(minDateOfData);
-    this.dateSignalMax.set(maxDateOfData);
-    this.dateSignalStart.set(startDate);
-    this.dateSignalFinish.set(finishDate);
+    this.dateSignalMin.set(ViewDataComponent.minDateOfData);
+    this.dateSignalMax.set(ViewDataComponent.maxDateOfData);
+    this.dateSignalStart.set(ViewDataComponent.startDate);
+    this.dateSignalFinish.set(ViewDataComponent.finishDate);
   }
 
   setFilteredDates(data: ChartData[]): Date[] {
@@ -129,13 +128,13 @@ export class ViewDataComponent {
 
   setStartDate(event: MatDatepickerInputEvent<Date>): void {
     this.dateSignalStart.set(event.value);
-    startDate = event.value;
+    ViewDataComponent.startDate = event.value;
     this.filterData();
   }
 
   setFinishDate(event: MatDatepickerInputEvent<Date>): void {
     this.dateSignalFinish.set(event.value);
-    finishDate = event.value;
+    ViewDataComponent.finishDate = event.value;
     this.filterData();
   }
 
@@ -221,50 +220,35 @@ export class ViewDataComponent {
     return series
   }
 
-  getAbscissaValues(tile: ChartSettings, filteredDates: Date[], comparedKey: NamesTypeOfChart): [any[], Function] {
-    let abscissaValues: any[];
+  getValuesArray(tile: ChartSettings, filteredDates: Date[], comparedKey: NamesTypeOfChart): [number[] | string[], Function] {
+    let valuesArray: number[] | string[];
     let mapFunc: Function;
     let compareFunc: Function;
 
     if (comparedKey !== 'birthdate') {
-      abscissaValues = [...new Set(this.data.map((item) => item[comparedKey]))];
+      valuesArray = [...new Set(this.data.map((item) => item[comparedKey]))];
       compareFunc = (a:any, b:any)=>(a === b);
     } else {
       let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
       [mapFunc, compareFunc] = this.getCountByFunctions(countby);
-      abscissaValues = this.getCountByDate(mapFunc, countby, filteredDates);
+      valuesArray = this.getCountByDate(mapFunc, countby, filteredDates);
     }
-    return [abscissaValues, compareFunc]
+    return [valuesArray, compareFunc]
   }
 
-  getChartPoints(tile: ChartSettings, filteredDates: Date[], chartKey: NamesTypeOfChart): [any[], Function] {
-    let chartPoints: any[];
-    let mapFunc: Function;
-    let pointFunc: Function = (a:any, b:any)=>(a === b);
-
-    if (chartKey !== 'birthdate') {
-      chartPoints = [...new Set(this.data.map((item) => item[chartKey]))];
-    } else {
-      let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
-      [mapFunc, pointFunc] = this.getCountByFunctions(countby);
-      chartPoints = this.getCountByDate(mapFunc, countby, filteredDates);
-    }
-    return [chartPoints, pointFunc]
-  }
-
-  fillComplexSeries(tile: ChartSettings, chartKey: NamesTypeOfChart, comparedKey: NamesTypeOfChart): any[]{
+  fillComplexSeries(tile: ChartSettings, chartKey: NamesTypeOfChart, comparedKey: NamesTypeOfChart): [object[], number[] | string[]]{
     let seriesData: number[];
     let series: object[] = [];
-    let abscissaValues: any[];
-    let chartPoints: any[];
+    let abscissaValues: number[] | string[];
+    let ordinateValues: number[] | string[];
     let compareFunc: Function;
     let pointFunc: Function;
     let filteredDates: Date[] = this.setFilteredDates(this.data);
 
-    [abscissaValues, compareFunc] = this.getAbscissaValues(tile, filteredDates, comparedKey);
-    [chartPoints, pointFunc] = this.getChartPoints(tile, filteredDates, chartKey);
+    [abscissaValues, compareFunc] = this.getValuesArray(tile, filteredDates, comparedKey);
+    [ordinateValues, pointFunc] = this.getValuesArray(tile, filteredDates, chartKey);
 
-    for (let point of chartPoints) {
+    for (let point of ordinateValues) {
       seriesData = abscissaValues.map((v) => {
         let Val = v;
         return this.data.filter(
@@ -280,7 +264,7 @@ export class ViewDataComponent {
         data: seriesData,
       });
     }
-    return series
+    return [series, abscissaValues]
   }
 
   fillColorSchema(axes: Axes, tile: ChartSettings): Axes {
@@ -321,7 +305,7 @@ export class ViewDataComponent {
           abscissaValues = [...new Set(this.data.map((item) => item[chartKey]))];
           series.push(this.fillSimpleSeries(tile, abscissaValues, chartKey));
         } else {
-          series = this.fillComplexSeries(tile, chartKey, comparedKey);
+          [series, abscissaValues] = this.fillComplexSeries(tile, chartKey, comparedKey);
         }
 
         axes = this.fillAxes(tile, abscissaValues, chartKey, comparedKey);

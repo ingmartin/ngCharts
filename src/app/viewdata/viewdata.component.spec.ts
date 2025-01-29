@@ -104,6 +104,10 @@ describe('ViewDataComponent', () => {
     fakeGetSettingsStore.and.callFake(
       (): Observable<ChartSettings[]>=>of(mockSettings)
     );
+    ViewDataComponent.minDateOfData = null;
+    ViewDataComponent.maxDateOfData = null;
+    ViewDataComponent.startDate = null;
+    ViewDataComponent.finishDate = null;
   });
 
   it('should compile', () => {
@@ -371,5 +375,49 @@ describe('ViewDataComponent', () => {
     axes = {};
     axes = component.fillColorSchema(axes, tile2);
     expect(axes.colors).toEqual(expectedColorScheme);
+  });
+
+  it ('should get abscissa values', ()=>{
+    component.filterData();
+    const tile = mockSettings[0];
+    const comparedKey: NamesTypeOfChart = tile.axes[0];
+    const filteredDates = component.setFilteredDates(component.data);
+    tile.countby = 'decades';
+    let [abscissaValues, compareFunc] = component.getValuesArray(tile, filteredDates, comparedKey);
+    expect(abscissaValues).toEqual([2020]);
+    tile.countby = 'years';
+    [abscissaValues, compareFunc] = component.getValuesArray(tile, filteredDates, comparedKey);
+    expect(abscissaValues).toEqual([2021, 2022, 2023]);
+  });
+
+  it ('should get ordinate values', ()=>{
+    component.filterData();
+    let tile = mockSettings[0];
+    let comparedKey: NamesTypeOfChart = tile.axes[1];
+    const filteredDates = component.setFilteredDates(component.data);
+    let [ordinateValues, compareFunc] = component.getValuesArray(tile, filteredDates, comparedKey);
+    expect(ordinateValues).toEqual(["A", "B-", "AB+"]);
+    tile = mockSettings[3];
+    comparedKey = tile.axes[1];
+    [ordinateValues, compareFunc] = component.getValuesArray(tile, filteredDates, comparedKey);
+    expect(ordinateValues).toEqual(["M", "F"]);
+  });
+
+  it('should set start date and call filterData', ()=>{
+    spyOn(component, 'filterData').and.callFake(()=>{});
+    const expectedDate = new Date('2020-01-01')
+    const eventDate: any = {value: expectedDate};
+    component.setStartDate(eventDate);
+    expect(ViewDataComponent.startDate).toBe(expectedDate);
+    expect(component.filterData).toHaveBeenCalled();
+  });
+
+  it('should set finish date and call filterData', ()=>{
+    spyOn(component, 'filterData').and.callFake(()=>{});
+    const expectedDate = new Date('2024-12-31')
+    const eventDate: any = {value: expectedDate};
+    component.setFinishDate(eventDate);
+    expect(ViewDataComponent.finishDate).toBe(expectedDate);
+    expect(component.filterData).toHaveBeenCalled();
   });
 });
