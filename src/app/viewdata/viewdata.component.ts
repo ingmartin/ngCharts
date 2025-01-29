@@ -306,7 +306,7 @@ export class ViewDataComponent {
     if (!Boolean(this.data.length)) {
       return
     }
-    setTimeout(()=>{ // TODO: fix this point it works but isn't graceful
+    setTimeout(()=>{ // TODO: find something better than timeout function
       let idx: number = 0;
       for (let tile of this.settings) {
         let axes: Axes = {};
