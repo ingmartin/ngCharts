@@ -1,5 +1,5 @@
 import { ChartData, NamesTypeOfChart } from './../data/interfaces/data.interface';
-import { AxesNames, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
+import { Axes, AxesNames, Axis, ChartSettings, ColorPalette, ColorScheme, CountByType, DefaultCountBy } from './../data/interfaces/chart.interface';
 import { DataStore } from './../data/store/data.store';
 import { Component, inject, signal } from '@angular/core';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
@@ -178,6 +178,118 @@ export class ViewDataComponent {
     this.redrawCharts = false;
   }
 
+  isSimpleChart(tile: ChartSettings): boolean{
+    return tile.axes.length === 1 ||
+      (
+        tile.axes.includes('birthdate') &&
+        tile.countby === 'for all time'
+      )
+  }
+
+  fillAxes(tile: ChartSettings, abscissaValues: any[], chartKey: NamesTypeOfChart, comparedKey: NamesTypeOfChart): Axes {
+    let axes: Axes = {};
+    if (tile.axes.length > 1) {
+      let axisLabel = this.isSimpleChart(tile) ? chartKey : comparedKey;
+      axes.xAxis = {
+        title: { text: this.Capitalize(axisLabel) },
+        categories: abscissaValues,
+      };
+      if (!this.isSimpleChart(tile)) {
+        axes.yAxis = {
+          title: { text: 'Values' },
+        };
+      }
+    }
+    return axes
+  }
+
+  fillSimpleSeries(tile: ChartSettings, abscissaValues: any[], chartKey: NamesTypeOfChart): object {
+    let series: object = {};
+    let seriesData: any[] = [];
+    seriesData = abscissaValues.map((v) => {
+      const Val = v;
+      return {
+        name: Val,
+        y: this.data.filter((item) => item[chartKey] === Val).length,
+      };
+    });
+    series = {
+      type: tile.type,
+      name: this.Capitalize(chartKey),
+      data: seriesData,
+    };
+    return series
+  }
+
+  getAbscissaValues(tile: ChartSettings, filteredDates: Date[], comparedKey: NamesTypeOfChart): [any[], Function] {
+    let abscissaValues: any[];
+    let mapFunc: Function;
+    let compareFunc: Function;
+
+    if (comparedKey !== 'birthdate') {
+      abscissaValues = [...new Set(this.data.map((item) => item[comparedKey]))];
+      compareFunc = (a:any, b:any)=>(a === b);
+    } else {
+      let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
+      [mapFunc, compareFunc] = this.getCountByFunctions(countby);
+      abscissaValues = this.getCountByDate(mapFunc, countby, filteredDates);
+    }
+    return [abscissaValues, compareFunc]
+  }
+
+  getChartPoints(tile: ChartSettings, filteredDates: Date[], chartKey: NamesTypeOfChart): [any[], Function] {
+    let chartPoints: any[];
+    let mapFunc: Function;
+    let pointFunc: Function = (a:any, b:any)=>(a === b);
+
+    if (chartKey !== 'birthdate') {
+      chartPoints = [...new Set(this.data.map((item) => item[chartKey]))];
+    } else {
+      let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
+      [mapFunc, pointFunc] = this.getCountByFunctions(countby);
+      chartPoints = this.getCountByDate(mapFunc, countby, filteredDates);
+    }
+    return [chartPoints, pointFunc]
+  }
+
+  fillComplexSeries(tile: ChartSettings, chartKey: NamesTypeOfChart, comparedKey: NamesTypeOfChart): any[]{
+    let seriesData: number[];
+    let series: object[] = [];
+    let abscissaValues: any[];
+    let chartPoints: any[];
+    let compareFunc: Function;
+    let pointFunc: Function;
+    let filteredDates: Date[] = this.setFilteredDates(this.data);
+
+    [abscissaValues, compareFunc] = this.getAbscissaValues(tile, filteredDates, comparedKey);
+    [chartPoints, pointFunc] = this.getChartPoints(tile, filteredDates, chartKey);
+
+    for (let point of chartPoints) {
+      seriesData = abscissaValues.map((v) => {
+        let Val = v;
+        return this.data.filter(
+          (item) => (
+            compareFunc(item[comparedKey], Val) &&
+            pointFunc(item[chartKey], point)
+          )
+        ).length;
+      });
+      series.push({
+        type: tile.type,
+        name: point,
+        data: seriesData,
+      });
+    }
+    return series
+  }
+
+  fillColorSchema(axes: Axes, tile: ChartSettings): Axes {
+    if (tile.colors && tile.colors !== 'default') {
+      ColorPalette.map((v: ColorScheme)=>{if (v.title === tile.colors) axes.colors = v.colors});
+    }
+    return axes
+  }
+
   setChartOptions(): void {
     for (let idx in this.settings) {
       this.tileSetDesktop[idx] = {
@@ -197,91 +309,24 @@ export class ViewDataComponent {
     setTimeout(()=>{ // TODO: fix this point it works but isn't graceful
       let idx: number = 0;
       for (let tile of this.settings) {
-        let axes: any = {};
+        let axes: Axes = {};
         let series: any = [];
         let abscissaValues: any[] = [];
         let chartKey: NamesTypeOfChart = tile.axes.length === 1 ? tile.axes[0] : tile.axes[1];
-        let seriesData: any[] = [];
+        let comparedKey: NamesTypeOfChart = tile.axes[0];
+        
 
-        if (
-          tile.axes.length === 1 ||
-          (tile.axes.includes('birthdate') && tile.countby === 'for all time')
-        ) {
+        if (this.isSimpleChart(tile)) {
           chartKey = tile.axes.length === 1 ? tile.axes[0] : tile.axes[1];
           abscissaValues = [...new Set(this.data.map((item) => item[chartKey]))];
-          seriesData = abscissaValues.map((v) => {
-            const Val = v;
-            return {
-              name: Val,
-              y: this.data.filter((item) => item[chartKey] === Val).length,
-            };
-          });
-          series.push({
-            type: tile.type,
-            name: this.Capitalize(chartKey),
-            data: seriesData,
-          });
-
-          if (tile.axes.length > 1) {
-            axes[AxesNames[0] + 'Axis'] = {
-              title: { text: this.Capitalize(chartKey) },
-              categories: abscissaValues,
-            };
-          }
+          series.push(this.fillSimpleSeries(tile, abscissaValues, chartKey));
         } else {
-          let mapFunc: any = (v: Date) => true;
-          let compareFunc: any = (v1: any, v2: any) => true;
-          let pointFunc: any = (a:any, b:any)=>(a === b);
-          let chartPoints: any;
-          let comparedKey: NamesTypeOfChart = tile.axes[0];
-          let filteredDates: Date[] = this.setFilteredDates(this.data);
-
-          if (comparedKey !== 'birthdate') {
-            abscissaValues = [...new Set(this.data.map((item) => item[comparedKey]))];
-            compareFunc = (a:any, b:any)=>(a === b);
-          } else {
-            let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
-            [mapFunc, compareFunc] = this.getCountByFunctions(countby);
-            abscissaValues = this.getCountByDate(mapFunc, countby, filteredDates);
-          }
-
-          if (chartKey !== 'birthdate') {
-            chartPoints = [...new Set(this.data.map((item) => item[chartKey]))];
-          } else {
-            let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
-            [mapFunc, pointFunc] = this.getCountByFunctions(countby);
-            chartPoints = this.getCountByDate(mapFunc, countby, filteredDates);
-          }
-
-          for (let point of chartPoints) {
-            seriesData = abscissaValues.map((v) => {
-              let Val = v;
-              return this.data.filter(
-                (item) => (
-                  compareFunc(item[comparedKey], Val) &&
-                  pointFunc(item[chartKey], point)
-                )
-              ).length;
-            });
-            series.push({
-              type: tile.type,
-              name: point,
-              data: seriesData,
-            });
-          }
-
-          axes[AxesNames[0] + 'Axis'] = {
-            title: { text: this.Capitalize(comparedKey) },
-            categories: abscissaValues,
-          };
-          axes[AxesNames[1] + 'Axis'] = {
-            title: { text: 'Values' },
-          };
+          series = this.fillComplexSeries(tile, chartKey, comparedKey);
         }
 
-        if (tile.colors && tile.colors !== 'default') {
-          ColorPalette.map((v: ColorScheme)=>{if (v.title === tile.colors) axes['colors'] = v.colors});
-        }
+        axes = this.fillAxes(tile, abscissaValues, chartKey, comparedKey);
+
+        axes = this.fillColorSchema(axes, tile);
 
         let chartOptions: Highcharts.Options = {
           chart: { type: tile.type },
@@ -306,10 +351,10 @@ export class ViewDataComponent {
     }, 10);
   }
 
-  getCountByFunctions(countby: CountByType): object[] {
-    let mapFunc: any = (v:any) => true;
-    let parseFunc: any = (v:any)=>true;
-    let compareFunc: any = (v:any)=>true;
+  getCountByFunctions(countby: CountByType): Function[] {
+    let parseFunc: Function;
+    let mapFunc: Function = ()=>{};
+    let compareFunc: Function = ()=>{};
 
     if (this.countByFilter.includes(countby)) {
       parseFunc = String;

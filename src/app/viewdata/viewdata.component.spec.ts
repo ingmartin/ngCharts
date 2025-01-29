@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ViewDataComponent } from './viewdata.component';
 import { SettingsStore } from '../data/store/chart.store';
-import { ChartSettings } from '../data/interfaces/chart.interface';
+import { Axes, ChartSettings } from '../data/interfaces/chart.interface';
 import { DataStore } from '../data/store/data.store';
-import { ChartData } from '../data/interfaces/data.interface';
+import { ChartData, NamesTypeOfChart } from '../data/interfaces/data.interface';
 import { Observable, of } from 'rxjs';
 
 describe('ViewDataComponent', () => {
@@ -79,8 +79,25 @@ describe('ViewDataComponent', () => {
         title: 'Gender Chart',
         subtitle: null,
         type: 'column',
-        axes: ['birthdate', 'sex',],
+        axes: ['sex', 'birthdate'],
         countby: 'decades',
+      },
+      {
+        id: 3,
+        title: 'Gender Chart',
+        subtitle: null,
+        type: 'pie',
+        axes: ['sex',],
+        countby: 'decades',
+      },
+      {
+        id: 4,
+        title: 'Gender Chart',
+        subtitle: null,
+        type: 'column',
+        axes: ['birthdate', 'sex',],
+        countby: 'for all time',
+        colors: 'darkgreen'
       }
     ];
     fakeGetSettingsStore = spyOn(settingsStore, 'getAllStoreData');
@@ -95,7 +112,7 @@ describe('ViewDataComponent', () => {
 
   it('get settings', () => {
     component.getSettings();
-    expect(component.settings.length).toBe(2);
+    expect(component.settings.length).toBe(4);
     expect(component.settings[0].id).toBe(1);
   });
 
@@ -150,8 +167,8 @@ describe('ViewDataComponent', () => {
   it('should return functions for countby === days', () => {
     const testDate = new Date('2022-06-12');
     const expectedStrDate = '2022-06-12';
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions('days');
     const parseFunc = String;
     const expectedMapFunc = (v: Date) => v.toISOString().split('T')[0];
@@ -173,8 +190,8 @@ describe('ViewDataComponent', () => {
       .split('-').slice(0, 2).join('-')
     );
     const expectedCompareFunc = (v1: any, v2: any) => (expectedMapFunc(v1) === parseFunc(v2));
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions('months');
     expect(typeof mapFunc).toBe(typeof expectedMapFunc);
     expect(mapFunc(testDate)).toBe(expectedStrDate);
@@ -190,8 +207,8 @@ describe('ViewDataComponent', () => {
     const parseFunc = parseInt;
     const expectedMapFunc = (v: Date) => v.getFullYear();
     const expectedCompareFunc = (v1: any, v2: any) => (expectedMapFunc(v1) === parseFunc(v2));
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions('years');
     expect(typeof mapFunc).toBe(typeof expectedMapFunc);
     expect(mapFunc(testDate)).toBe(expectedStrDate);
@@ -209,8 +226,8 @@ describe('ViewDataComponent', () => {
     const expectedCompareFunc = (v1: any, v2: any) => (
       v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
     );
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions('decades');
     expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
     expect(compareFunc(testDate, expectedStrDate)).toBe(true);
@@ -225,8 +242,8 @@ describe('ViewDataComponent', () => {
     const expectedCompareFunc = (v1: any, v2: any) => (
       v1 >= parseFunc(v2) && v1 < parseFunc(v2 + diffYears)
     );
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions('centuries');
     expect(typeof compareFunc).toEqual(typeof expectedCompareFunc);
     expect(compareFunc(testDate, expectedStrDate)).toBe(true);
@@ -237,8 +254,8 @@ describe('ViewDataComponent', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'days';
     const expectedDates = ['2021-02-28', '2022-12-31', '2023-05-10']
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions(countby);
     const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
     expect(axisValues).toEqual(expectedDates);
@@ -248,8 +265,8 @@ describe('ViewDataComponent', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'months';
     const expectedDates = ['2021-02', '2022-12', '2023-05']
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions(countby);
     const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
     expect(axisValues).toEqual(expectedDates);
@@ -259,8 +276,8 @@ describe('ViewDataComponent', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'years';
     const expectedDates = [2021, 2022, 2023]
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions(countby);
     const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
     expect(axisValues).toEqual(expectedDates);
@@ -270,8 +287,8 @@ describe('ViewDataComponent', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'decades';
     const expectedDates = [2020]
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions(countby);
     const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
     expect(axisValues).toEqual(expectedDates);
@@ -281,8 +298,8 @@ describe('ViewDataComponent', () => {
     const filteredDates: Date[] = component.setFilteredDates(mockData);
     const countby = 'centuries';
     const expectedDates = [2000]
-    let mapFunc: any = ()=>{};
-    let compareFunc: any = ()=>{};
+    let mapFunc: Function;
+    let compareFunc: Function;
     [mapFunc, compareFunc] = component.getCountByFunctions(countby);
     const axisValues = component.getCountByDate(mapFunc, countby, filteredDates);
     expect(axisValues).toEqual(expectedDates);
@@ -290,11 +307,11 @@ describe('ViewDataComponent', () => {
 
   it ('should not set charts options if data array is empty', ()=>{
     fakeGetSettingsStore.and.callFake(
-      (): Observable<ChartSettings[]>=>of(mockSettings.slice(0, 1)))
+      (): Observable<ChartSettings[]>=>of(mockSettings.slice(1, 3)))
     component.getSettings();
     component.setTiles();
-    expect(component.tileSetDesktop.length).toBe(1);
-    expect(component.tileSetMobile.length).toBe(1);
+    expect(component.tileSetDesktop.length).toBe(2);
+    expect(component.tileSetMobile.length).toBe(2);
     expect(component.tileSetDesktop[0].Highcharts).toBe(null);
     expect(component.tileSetMobile[0].Highcharts).toBe(null);
     component.setChartOptions();
@@ -302,16 +319,37 @@ describe('ViewDataComponent', () => {
     expect(component.tileSetMobile[0].Highcharts).toBe(null);
   });
 
+  it('should check chart by title if it is simple', ()=>{
+    expect(component.isSimpleChart(mockSettings[0])).toBe(false);
+    expect(component.isSimpleChart(mockSettings[1])).toBe(false);
+    expect(component.isSimpleChart(mockSettings[2])).toBe(true);
+    expect(component.isSimpleChart(mockSettings[3])).toBe(true);
+  });
+
+  it('should fill simple chart', ()=>{
+    component.filterData();
+    const tile = mockSettings[2];
+    const chartKey: NamesTypeOfChart = tile.axes.length === 1 ? tile.axes[0] : tile.axes[1];
+    const abscissaValues = [...new Set(component.data.map((item) => item[chartKey]))];
+    expect(abscissaValues).toEqual(["M", "F"]);
+    const series = component.fillSimpleSeries(tile, abscissaValues, chartKey);
+    const expectedSeries = {
+      data: [{name: "M", y: 1}, {name: "F", y: 2}],
+      name: "Gender", type: "pie"
+    }
+    expect(series).toEqual(expectedSeries);
+  })
+
   it ('set charts options', ()=>{
     jasmine.clock().install();
     fakeGetSettingsStore.and.callFake(
-      (): Observable<ChartSettings[]>=>of(mockSettings.slice(0, 1)))
+      (): Observable<ChartSettings[]>=>of(mockSettings.slice(0, 3)))
     fakeGetDataStore.and.callFake(
         (): Observable<ChartData[]>=>of(mockData))
     component.getSettings();
     component.setTiles();
-    expect(component.tileSetDesktop.length).toBe(1);
-    expect(component.tileSetMobile.length).toBe(1);
+    expect(component.tileSetDesktop.length).toBe(3);
+    expect(component.tileSetMobile.length).toBe(3);
     expect(component.tileSetDesktop[0].Highcharts).toBe(null);
     expect(component.tileSetMobile[0].Highcharts).toBe(null);
     component.filterData();
@@ -319,26 +357,19 @@ describe('ViewDataComponent', () => {
     jasmine.clock().tick(20);
     expect(component.tileSetDesktop[0].Highcharts).not.toBe(null);
     expect(component.tileSetMobile[0].Highcharts).not.toBe(null);
-    expect(component.tileSetDesktop[0].options.colors).toBe(undefined);
     jasmine.clock().uninstall()
   });
 
   it ('should set color palette for charts options', ()=>{
-    jasmine.clock().install();
-    const testedSettings: ChartSettings = mockSettings[0];
-    testedSettings.colors = 'darkgreen';
     const expectedColorScheme: string[] = ['#154033', '#333E0B', '#0B341F', '#253B1E', '#222F1E'];
-    fakeGetSettingsStore.and.callFake(
-      (): Observable<ChartSettings[]>=>of([testedSettings]))
-    fakeGetDataStore.and.callFake(
-        (): Observable<ChartData[]>=>of(mockData))
-    component.getSettings();
-    component.setTiles();
-    component.filterData();
-    component.setChartOptions();
-    jasmine.clock().tick(20);
-    expect(component.tileSetDesktop[0].Highcharts).not.toBe(null);
-    expect(component.tileSetDesktop[0].options.colors).toEqual(expectedColorScheme);
-    jasmine.clock().uninstall()
+    const tile1 = mockSettings[1];
+    const tile2 = mockSettings[3];
+    let axes: Axes = {}
+    axes = component.fillColorSchema(axes, tile1);
+    expect(axes.colors).toBe(undefined);
+
+    axes = {};
+    axes = component.fillColorSchema(axes, tile2);
+    expect(axes.colors).toEqual(expectedColorScheme);
   });
 });

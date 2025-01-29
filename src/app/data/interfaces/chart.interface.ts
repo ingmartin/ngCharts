@@ -36,7 +36,20 @@ export interface ColorScheme {
   colors: string[];
 }
 
+export interface Axis{
+  title: {
+    text: string,
+  },
+  categories?: any[],
+}
+
 export const AxesNames = ['x', 'y', 'z'];
+export interface Axes {
+  xAxis?: Axis,
+  yAxis?: Axis,
+  zAxis?: Axis,
+  colors?: string[],
+}
 
 export interface ChartSettings {
   id: number;
