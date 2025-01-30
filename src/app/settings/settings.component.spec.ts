@@ -47,6 +47,7 @@ describe('SettingsComponent', () => {
         type: 'column',
         axes: ['birthdate', 'sex',],
         countby: 'decades',
+        tall: true,
       }
     ];
     fakeGetStore = spyOn(settingsStore, 'getAllStoreData')

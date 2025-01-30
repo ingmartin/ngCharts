@@ -119,9 +119,14 @@ export class ViewDataComponent {
     this.dateSignalFinish.set(ViewDataComponent.finishDate);
   }
 
+  getUniqueValues(data: ChartData[], uniqueKey: NamesTypeOfChart): any[]{
+    const result = [...new Set(data.map((item) => item[uniqueKey]))];
+    return result
+  }
+
   setFilteredDates(data: ChartData[]): Date[] {
     let dates: Date[] = [];
-    dates = [...new Set(data.map((item) => item.birthdate))];
+    dates = this.getUniqueValues(data, 'birthdate');
     dates = dates.sort((a, b) => a.getTime() - b.getTime());
     return dates
   }
@@ -226,7 +231,7 @@ export class ViewDataComponent {
     let compareFunc: Function;
 
     if (comparedKey !== 'birthdate') {
-      valuesArray = [...new Set(this.data.map((item) => item[comparedKey]))];
+      valuesArray = this.getUniqueValues(this.data, comparedKey);
       compareFunc = (a:any, b:any)=>(a === b);
     } else {
       let countby: string = tile.countby ? tile.countby : this.defaultCountBy;
@@ -302,7 +307,7 @@ export class ViewDataComponent {
 
         if (this.isSimpleChart(tile)) {
           chartKey = tile.axes.length === 1 ? tile.axes[0] : tile.axes[1];
-          abscissaValues = [...new Set(this.data.map((item) => item[chartKey]))];
+          abscissaValues = this.getUniqueValues(this.data, chartKey);
           series.push(this.fillSimpleSeries(tile, abscissaValues, chartKey));
         } else {
           [series, abscissaValues] = this.fillComplexSeries(tile, chartKey, comparedKey);

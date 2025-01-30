@@ -420,4 +420,13 @@ describe('ViewDataComponent', () => {
     expect(ViewDataComponent.finishDate).toBe(expectedDate);
     expect(component.filterData).toHaveBeenCalled();
   });
+
+  it('should get unique values', ()=>{
+    let result = component.getUniqueValues(mockData, 'job');
+    expect(result).toEqual(["Engineer", "Teacher", "Nurse"]);
+    result = component.getUniqueValues(mockData, 'birthdate');
+    expect(result).toEqual([new Date('2022-12-31'), new Date('2023-05-10'), new Date('2021-02-28')]);
+    result = component.getUniqueValues(mockData, 'sex');
+    expect(result).toEqual(["M", "F"]);
+  })
 });

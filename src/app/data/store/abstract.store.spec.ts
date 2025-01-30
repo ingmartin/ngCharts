@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { abStore, abInterface } from './abstract.store';
 import { Observable, of } from 'rxjs';
+import { reject } from 'lodash';
 
 class TestStore extends abStore<abInterface> {
   beforeUpload(data: abInterface[]): abInterface[] {
@@ -49,7 +50,7 @@ describe('abStore', () => {
     const expectedUpdatedArray = [3, 2]
     for (let data of dataArray) {
       const expectedUpdated: number = parseInt(String(expectedUpdatedArray.pop()));
-      const result = service.upsertItem(1, data);
+      const result = service.upsertItem(data.id, data);
       expect(result).toBeTrue();
       expect(service.getUpdated()).toBe(expectedUpdated);
     }
@@ -82,5 +83,47 @@ describe('abStore', () => {
         expect(result[0].id).toBe(2);
         done();
       });
+  });
+
+  it('should write error to console during update store', ()=>{
+    const error = Error('Update error');
+    spyOn(service.store, 'update').and.callFake(()=>{throw error});
+    const log = spyOn(console, 'log').and.callFake(()=>{});
+    const expectedUpdated: number = 0;
+    const data: abInterface[] = [{ id: 1 }];
+    const result = service.updateStore(data);
+    expect(result).toBeFalse();
+    expect(service.getUpdated()).toBe(expectedUpdated);
+    expect(log).toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(error);
+  });
+
+  it('should write error to console during remove item', ()=>{
+    const error = Error('Update error');
+    const log = spyOn(console, 'log').and.callFake(()=>{});
+    const data: abInterface[] = [{ id: 1 }];
+    service.updateStore(data);
+    const updatedData: abInterface = { id: 1 };
+    const expectedUpdated: number = 1;
+    spyOn(service.store, 'update').and.callFake(()=>{throw error});
+    const result = service.upsertItem(1, updatedData);
+    expect(result).toBeFalse();
+    expect(service.getUpdated()).toBe(expectedUpdated);
+    expect(log).toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(error);
+  });
+
+  it('should write error to console during upsert item', ()=>{
+    const error = Error('Update error');
+    const log = spyOn(console, 'log').and.callFake(()=>{});
+    const data: abInterface[] = [{ id: 1 }];
+    service.updateStore(data);
+    const expectedUpdated: number = 1;
+    spyOn(service.store, 'update').and.callFake(()=>{throw error});
+    const result = service.deleteItem(1);
+    expect(result).toBeFalse();
+    expect(service.getUpdated()).toBe(expectedUpdated);
+    expect(log).toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(error);
   });
 });
